@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlertModule } from './modules/alert/alert.module';
+import { AlertEntity } from './modules/alert/entities/alert.entity';
 
 @Module({
   imports: [
@@ -17,8 +18,8 @@ import { AlertModule } from './modules/alert/alert.module';
         username: configService.getOrThrow<string>('DATABASE_USERNAME'),
         password: configService.getOrThrow<string>('DATABAE_PASSWORD'),
         database: configService.getOrThrow<string>('DATABASE_NAME'),
-        entities: [],
-        autoLoadEntities: true,
+        entities: [AlertEntity],
+        autoLoadEntities: false,
         synchronize: true,
       }),
     }),
