@@ -1,4 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { AlertEntity } from './entities/alert.entity';
 
 @Injectable()
-export class AlertService {}
+export class AlertService {
+  constructor(
+    @InjectRepository(AlertEntity)
+    private readonly alertRepository: Repository<AlertEntity>,
+  ) {}
+
+  public findAll(): Promise<AlertEntity[]> {
+    return this.alertRepository.find();
+  }
+}
