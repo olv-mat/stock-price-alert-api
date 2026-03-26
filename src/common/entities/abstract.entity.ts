@@ -9,8 +9,8 @@ export class AbstractEntity {
   public id: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  public createdAt: string;
+  public createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  public updatedAt: string;
+  public updatedAt: Date;
 }
