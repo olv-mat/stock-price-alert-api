@@ -1,4 +1,4 @@
-import { UuidDto } from 'src/common/dtos/Uuid.dto';
+import { UuidDto } from 'src/common/dtos/uuid.dto';
 
 export const makeUuidDto = (ovverride?: Partial<UuidDto>): UuidDto => {
   return Object.assign(new UuidDto(), {

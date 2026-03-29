@@ -1,5 +1,5 @@
 import { AbstractEntity } from 'src/common/entities/abstract.entity';
-import { AlertStatus } from 'src/modules/enum/alert-status.enum';
+import { AlertStatus } from 'src/modules/alert/enum/alert-status.enum';
 import { Column, Entity } from 'typeorm';
 
 @Entity({ name: 'alerts' })

@@ -1,5 +1,5 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { UuidDto } from 'src/common/dtos/Uuid.dto';
+import { UuidDto } from 'src/common/dtos/uuid.dto';
 import {
   SwaggerInternalServerError,
   SwaggerNotFound,
