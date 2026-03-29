@@ -1,5 +1,7 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { Repository } from 'typeorm';
 import { AlertService } from '../alert.service';
 import { AlertEntity } from '../entities/alert.entity';
@@ -18,7 +20,7 @@ describe('AlertService', () => {
       providers: [
         {
           provide: getRepositoryToken(AlertEntity),
-          useValue: { find: jest.fn() },
+          useValue: { find: jest.fn(), findOneBy: jest.fn() },
         },
         AlertService,
       ],
@@ -32,13 +34,37 @@ describe('AlertService', () => {
   describe('findAll', () => {
     it('should return a list of alerts', async () => {
       const { alertRepositoryMock, alertService } = context;
-      const expectedResponse = [makeAlertEntity()];
+      const alertEntities = [makeAlertEntity()];
       const spy = jest
         .spyOn(alertRepositoryMock, 'find')
-        .mockResolvedValue(expectedResponse);
+        .mockResolvedValue(alertEntities);
       const response = await alertService.findAll();
       expect(spy).toHaveBeenCalled();
-      expect(response).toEqual(expectedResponse);
+      expect(response).toEqual(alertEntities);
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a alert', async () => {
+      const { alertRepositoryMock, alertService } = context;
+      const { id } = makeUuidDto();
+      const alertEntity = makeAlertEntity();
+      const spy = jest
+        .spyOn(alertRepositoryMock, 'findOneBy')
+        .mockResolvedValue(alertEntity);
+      const response = await alertService.findOne(id);
+      expect(spy).toHaveBeenCalledWith({ id: id });
+      expect(response).toEqual(alertEntity);
+    });
+
+    it('should throw a not found excpetion when alert does not exist', async () => {
+      const { alertRepositoryMock, alertService } = context;
+      const { id } = makeUuidDto();
+      const spy = jest
+        .spyOn(alertRepositoryMock, 'findOneBy')
+        .mockResolvedValue(null);
+      await expect(alertService.findOne(id)).rejects.toThrow(NotFoundException);
+      expect(spy).toHaveBeenCalledWith({ id: id });
     });
   });
 });
