@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
+import { UuidDto } from 'src/common/dtos/Uuid.dto';
 import {
   SwaggerInternalServerError,
   SwaggerOperation,
@@ -16,5 +17,11 @@ export class AlertController {
   public async findAll(): Promise<AlertResponseDto[]> {
     const alertEntities = await this.alertService.findAll();
     return AlertResponseDto.fromEntities(alertEntities);
+  }
+
+  @Get(':id')
+  public async findOne(@Param() { id }: UuidDto): Promise<AlertResponseDto> {
+    const alertEntity = await this.alertService.findOne(id);
+    return AlertResponseDto.fromEntity(alertEntity);
   }
 }
