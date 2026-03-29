@@ -2,6 +2,7 @@ import { Controller, Get, Param } from '@nestjs/common';
 import { UuidDto } from 'src/common/dtos/Uuid.dto';
 import {
   SwaggerInternalServerError,
+  SwaggerNotFound,
   SwaggerOperation,
 } from 'src/common/swagger/decorators.swagger';
 import { AlertService } from './alert.service';
@@ -20,6 +21,9 @@ export class AlertController {
   }
 
   @Get(':id')
+  @SwaggerOperation('Retrieve a specific alert')
+  @SwaggerNotFound('Alert not found')
+  @SwaggerInternalServerError()
   public async findOne(@Param() { id }: UuidDto): Promise<AlertResponseDto> {
     const alertEntity = await this.alertService.findOne(id);
     return AlertResponseDto.fromEntity(alertEntity);
