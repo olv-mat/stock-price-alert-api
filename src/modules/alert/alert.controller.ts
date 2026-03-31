@@ -1,4 +1,5 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
 import {
   SwaggerInternalServerError,
@@ -7,6 +8,7 @@ import {
 } from 'src/common/swagger/decorators.swagger';
 import { AlertService } from './alert.service';
 import { AlertResponseDto } from './dtos/alert-response.dto';
+import { CreateAlertDto } from './dtos/create-alert.dto';
 
 @Controller('alerts')
 export class AlertController {
@@ -27,5 +29,13 @@ export class AlertController {
   public async findOne(@Param() { id }: UuidDto): Promise<AlertResponseDto> {
     const alertEntity = await this.alertService.findOne(id);
     return AlertResponseDto.fromEntity(alertEntity);
+  }
+
+  @Post()
+  public async create(
+    @Body() dto: CreateAlertDto,
+  ): Promise<CreatedResponseDto> {
+    const { id } = await this.alertService.create(dto);
+    return CreatedResponseDto.create(id, 'Alert created successfully');
   }
 }

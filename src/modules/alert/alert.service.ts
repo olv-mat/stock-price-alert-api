@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { CreateAlertDto } from './dtos/create-alert.dto';
 import { AlertEntity } from './entities/alert.entity';
 
 @Injectable()
@@ -16,6 +17,10 @@ export class AlertService {
 
   public findOne(id: string): Promise<AlertEntity> {
     return this.getById(id);
+  }
+
+  public async create(dto: CreateAlertDto): Promise<AlertEntity> {
+    return await this.alertRepository.save(dto);
   }
 
   private async getById(id: string): Promise<AlertEntity> {
