@@ -32,6 +32,8 @@ export class AlertController {
   }
 
   @Post()
+  @SwaggerOperation('Create a new alert')
+  @SwaggerInternalServerError()
   public async create(
     @Body() dto: CreateAlertDto,
   ): Promise<CreatedResponseDto> {
