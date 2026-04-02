@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { AlertService } from '../alert.service';
 import { AlertEntity } from '../entities/alert.entity';
 import { makeAlertEntity } from './factories/alert.entity.factory';
+import { makeCreateAlertDto } from './factories/create-alert.dto.factory';
 
 type AlertServiceContext = {
   alertRepositoryMock: Repository<AlertEntity>;
@@ -20,7 +21,11 @@ describe('AlertService', () => {
       providers: [
         {
           provide: getRepositoryToken(AlertEntity),
-          useValue: { find: jest.fn(), findOneBy: jest.fn() },
+          useValue: {
+            find: jest.fn(),
+            findOneBy: jest.fn(),
+            save: jest.fn(),
+          },
         },
         AlertService,
       ],
@@ -65,6 +70,20 @@ describe('AlertService', () => {
         .mockResolvedValue(null);
       await expect(alertService.findOne(id)).rejects.toThrow(NotFoundException);
       expect(spy).toHaveBeenCalledWith({ id: id });
+    });
+  });
+
+  describe('create', () => {
+    it('should create a new alert', async () => {
+      const { alertRepositoryMock, alertService } = context;
+      const dto = makeCreateAlertDto();
+      const alertEntity = makeAlertEntity();
+      const spy = jest
+        .spyOn(alertRepositoryMock, 'save')
+        .mockResolvedValue(alertEntity);
+      const response = await alertService.create(dto);
+      expect(spy).toHaveBeenCalledWith(dto);
+      expect(response).toEqual(alertEntity);
     });
   });
 });
