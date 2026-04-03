@@ -23,6 +23,11 @@ export class AlertService {
     return await this.alertRepository.save(dto);
   }
 
+  public async delete(id: string): Promise<void> {
+    const alertEntity = await this.getById(id);
+    await this.alertRepository.delete(alertEntity.id);
+  }
+
   private async getById(id: string): Promise<AlertEntity> {
     const alertEntity = await this.alertRepository.findOneBy({ id: id });
     if (!alertEntity) throw new NotFoundException('Alert not found');

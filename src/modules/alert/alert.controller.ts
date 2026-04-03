@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
+import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
 import {
   SwaggerInternalServerError,
@@ -39,5 +40,11 @@ export class AlertController {
   ): Promise<CreatedResponseDto> {
     const { id } = await this.alertService.create(dto);
     return CreatedResponseDto.create(id, 'Alert created successfully');
+  }
+
+  @Delete(':id')
+  public async delete(@Param() { id }: UuidDto): Promise<DefaultResponseDto> {
+    await this.alertService.delete(id);
+    return DefaultResponseDto.create('Alert deleted successfully');
   }
 }
