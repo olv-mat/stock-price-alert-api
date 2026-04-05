@@ -25,6 +25,7 @@ describe('AlertService', () => {
             find: jest.fn(),
             findOneBy: jest.fn(),
             save: jest.fn(),
+            delete: jest.fn(),
           },
         },
         AlertService,
@@ -84,6 +85,32 @@ describe('AlertService', () => {
       const response = await alertService.create(dto);
       expect(spy).toHaveBeenCalledWith(dto);
       expect(response).toEqual(alertEntity);
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete a alert', async () => {
+      const { alertRepositoryMock, alertService } = context;
+      const alertEntity = makeAlertEntity();
+      const { id } = makeUuidDto();
+      const findOneBySpy = jest
+        .spyOn(alertRepositoryMock, 'findOneBy')
+        .mockResolvedValue(alertEntity);
+      const deleteSpy = jest.spyOn(alertRepositoryMock, 'delete');
+      await alertService.delete(id);
+      expect(findOneBySpy).toHaveBeenCalledWith({ id: id });
+      expect(deleteSpy).toHaveBeenCalledWith(alertEntity.id);
+    });
+
+    it('should throw a not found exception when alert does not exist', async () => {
+      const { alertRepositoryMock, alertService } = context;
+      const { id } = makeUuidDto({
+        id: '27d00cd0-31c8-4630-9e4f-e2f890689a73',
+      });
+      const spy = jest.spyOn(alertRepositoryMock, 'delete');
+      jest.spyOn(alertRepositoryMock, 'findOneBy').mockResolvedValue(null);
+      await expect(alertService.delete(id)).rejects.toThrow(NotFoundException);
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 });
