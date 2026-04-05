@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { describe } from 'node:test';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
+import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { AlertController } from '../alert.controller';
 import { AlertService } from '../alert.service';
@@ -14,6 +15,7 @@ describe('AlertController', () => {
     findAll: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
+    delete: jest.fn(),
   };
 
   beforeEach(() => {
@@ -69,6 +71,24 @@ describe('AlertController', () => {
       const response = await alertController.create(dto);
       expect(alertServiceMock.create).toHaveBeenCalledWith(dto);
       expect(response instanceof CreatedResponseDto).toBe(true);
+    });
+  });
+
+  describe('delete', () => {
+    it('should return a default response', async () => {
+      const dto = makeUuidDto();
+      alertServiceMock.delete.mockResolvedValue(undefined);
+      const response = await alertController.delete(dto);
+      expect(alertServiceMock.delete).toHaveBeenCalledWith(dto.id);
+      expect(response instanceof DefaultResponseDto).toBe(true);
+    });
+
+    it('should propagate service exceptions', async () => {
+      const dto = makeUuidDto();
+      alertServiceMock.delete.mockRejectedValue(new NotFoundException());
+      await expect(alertController.delete(dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });
