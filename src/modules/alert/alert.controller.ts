@@ -43,6 +43,9 @@ export class AlertController {
   }
 
   @Delete(':id')
+  @SwaggerOperation('Delete a specific alert')
+  @SwaggerNotFound('Alert not found')
+  @SwaggerInternalServerError()
   public async delete(@Param() { id }: UuidDto): Promise<DefaultResponseDto> {
     await this.alertService.delete(id);
     return DefaultResponseDto.create('Alert deleted successfully');
