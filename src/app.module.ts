@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlertModule } from './modules/alert/alert.module';
 import { AlertEntity } from './modules/alert/entities/alert.entity';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AlertEntity } from './modules/alert/entities/alert.entity';
       }),
     }),
     AlertModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],
