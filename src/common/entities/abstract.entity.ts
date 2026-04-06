@@ -6,11 +6,11 @@ import {
 
 export class AbstractEntity {
   @PrimaryGeneratedColumn('uuid')
-  public id: string;
+  public id!: string;
 
   @CreateDateColumn({ name: 'created_at' })
-  public createdAt: Date;
+  public createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
-  public updatedAt: Date;
+  public updatedAt!: Date;
 }

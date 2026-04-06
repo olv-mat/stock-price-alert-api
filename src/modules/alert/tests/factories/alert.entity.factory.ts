@@ -1,4 +1,5 @@
 import { AlertStatus } from 'src/modules/alert/enum/alert-status.enum';
+import { makeUserEntity } from 'src/modules/user/tests/factories/user.entity.factory';
 import { AlertEntity } from '../../entities/alert.entity';
 
 export const makeAlertEntity = (
@@ -10,5 +11,6 @@ export const makeAlertEntity = (
   status: AlertStatus.PENDING,
   createdAt: new Date(),
   updatedAt: new Date(),
+  user: makeUserEntity(),
   ...override,
 });
