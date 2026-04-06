@@ -1,4 +1,3 @@
-import { makeAlertEntity } from 'src/modules/alert/tests/factories/alert.entity.factory';
 import { UserEntity } from '../../entities/user.entity';
 
 export const makeUserEntity = (override?: Partial<UserEntity>): UserEntity => ({
@@ -6,7 +5,7 @@ export const makeUserEntity = (override?: Partial<UserEntity>): UserEntity => ({
   name: 'John Doe',
   email: 'john.doe@test.com',
   password: '',
-  alerts: [makeAlertEntity()],
+  alerts: [],
   createdAt: new Date(),
   updatedAt: new Date(),
   ...override,
