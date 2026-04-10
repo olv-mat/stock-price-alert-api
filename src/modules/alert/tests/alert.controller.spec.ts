@@ -36,7 +36,7 @@ describe('AlertController', () => {
       );
     });
 
-    it('should return a empty arrat if no alerts found', async () => {
+    it('should return a empty array if no alerts found', async () => {
       alertServiceMock.findAll.mockResolvedValue([]);
       const response = await alertController.findAll();
       expect(alertServiceMock.findAll).toHaveBeenCalled();
