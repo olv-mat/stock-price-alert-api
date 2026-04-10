@@ -89,6 +89,7 @@ describe('AlertController', () => {
       await expect(alertController.delete(dto)).rejects.toThrow(
         NotFoundException,
       );
+      expect(alertServiceMock.delete).toHaveBeenCalledWith(dto.id);
     });
   });
 });
