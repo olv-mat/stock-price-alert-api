@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { CryptographyService } from 'src/common/modules/cryptography/cryptography.service';
 import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
@@ -9,6 +10,7 @@ import { makeUserEntity } from './factories/user.entity.factory';
 
 type UserServiceContext = {
   userRepositoryMock: Repository<UserEntity>;
+  cryptographyServiceMock: CryptographyService;
   userService: UserService;
 };
 
@@ -22,11 +24,16 @@ describe('UserService', () => {
           provide: getRepositoryToken(UserEntity),
           useValue: { find: jest.fn(), findOneBy: jest.fn() },
         },
+        {
+          provide: CryptographyService,
+          useValue: { hash: jest.fn() },
+        },
         UserService,
       ],
     }).compile();
     context = {
       userRepositoryMock: module.get(getRepositoryToken(UserEntity)),
+      cryptographyServiceMock: module.get(CryptographyService),
       userService: module.get(UserService),
     };
   });
