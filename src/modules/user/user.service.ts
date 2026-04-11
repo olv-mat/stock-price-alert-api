@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CryptographyService } from 'src/common/modules/cryptography/cryptography.service';
 import { Repository } from 'typeorm';
+import { CreateUserDto } from './dtos/create-user.dto';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
@@ -20,9 +25,24 @@ export class UserService {
     return this.getById(id);
   }
 
+  public async create(dto: CreateUserDto): Promise<UserEntity> {
+    await this.assertEmailIsAvailable(dto.email);
+    return this.userRepository.save({
+      ...dto,
+      password: await this.cryptographyService.hash(dto.password),
+    });
+  }
+
   private async getById(id: string): Promise<UserEntity> {
     const userEntity = await this.userRepository.findOneBy({ id: id });
     if (!userEntity) throw new NotFoundException('User not found');
     return userEntity;
+  }
+
+  private async assertEmailIsAvailable(email: string): Promise<void> {
+    const userEntity = await this.userRepository.findOneBy({
+      email: email,
+    });
+    if (userEntity) throw new ConflictException('Email already in use');
   }
 }

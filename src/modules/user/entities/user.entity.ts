@@ -7,7 +7,7 @@ export class UserEntity extends AbstractEntity {
   @Column({ length: 100, nullable: false })
   public name!: string;
 
-  @Column({ length: 255, nullable: false })
+  @Column({ length: 255, nullable: false, unique: true })
   public email!: string;
 
   @Column({ length: 255, nullable: false })
