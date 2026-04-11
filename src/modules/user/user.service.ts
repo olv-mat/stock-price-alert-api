@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CryptographyService } from 'src/common/modules/cryptography/cryptography.service';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 
@@ -8,6 +9,7 @@ export class UserService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly cryptographyService: CryptographyService,
   ) {}
 
   public findAll(): Promise<UserEntity[]> {

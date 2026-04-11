@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CryptographyModule } from './common/modules/cryptography/cryptography.module';
 import { AlertModule } from './modules/alert/alert.module';
 import { AlertEntity } from './modules/alert/entities/alert.entity';
 import { UserEntity } from './modules/user/entities/user.entity';
@@ -25,6 +26,7 @@ import { UserModule } from './modules/user/user.module';
         synchronize: true,
       }),
     }),
+    CryptographyModule,
     AlertModule,
     UserModule,
   ],
