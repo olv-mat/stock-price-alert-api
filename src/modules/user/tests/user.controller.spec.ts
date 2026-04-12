@@ -1,8 +1,10 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
+import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { UserResponseDto } from '../dtos/user-response.dto';
 import { UserController } from '../user.controller';
 import { UserService } from '../user.service';
+import { makeCreateUserDto } from './factories/create-user.dto.factory';
 import { makeUserEntity } from './factories/user.entity.factory';
 
 describe('UserController', () => {
@@ -10,6 +12,7 @@ describe('UserController', () => {
   const userServiceMock = {
     findAll: jest.fn(),
     findOne: jest.fn(),
+    create: jest.fn(),
   };
 
   beforeEach(() => {
@@ -55,6 +58,24 @@ describe('UserController', () => {
         BadRequestException,
       );
       expect(userServiceMock.findOne).toHaveBeenCalledWith(dto.id);
+    });
+  });
+
+  describe('create', () => {
+    it('should return a created response', async () => {
+      const dto = makeCreateUserDto();
+      userServiceMock.create.mockResolvedValue(makeUserEntity());
+      const response = await userController.create(dto);
+      expect(userServiceMock.create).toHaveBeenCalledWith(dto);
+      expect(response instanceof CreatedResponseDto).toBe(true);
+    });
+
+    it('should propagate service exceptions', async () => {
+      const dto = makeCreateUserDto();
+      userServiceMock.create.mockRejectedValue(new ConflictException());
+      await expect(userController.create(dto)).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 });
