@@ -4,6 +4,7 @@ import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
 import { AtLeastOneFieldPipe } from 'src/common/pipes/at-least-one-field.pipe';
 import {
+  SwaggerBadRequest,
   SwaggerConflict,
   SwaggerInternalServerError,
   SwaggerNotFound,
@@ -45,6 +46,11 @@ export class UserController {
   }
 
   @Patch(':id')
+  @SwaggerOperation('Update a specific user')
+  @SwaggerBadRequest('At least one field must be provided')
+  @SwaggerNotFound('User not found')
+  @SwaggerConflict('Email already in use')
+  @SwaggerInternalServerError()
   public async update(
     @Param() { id }: UuidDto,
     @Body(new AtLeastOneFieldPipe()) dto: UpdateUserDto,
