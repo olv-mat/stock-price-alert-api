@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
+import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
+import { AtLeastOneFieldPipe } from 'src/common/pipes/at-least-one-field.pipe';
 import {
   SwaggerConflict,
   SwaggerInternalServerError,
@@ -8,6 +10,7 @@ import {
   SwaggerOperation,
 } from 'src/common/swagger/decorators.swagger';
 import { CreateUserDto } from './dtos/create-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { UserService } from './user.service';
 
@@ -39,5 +42,14 @@ export class UserController {
   public async create(@Body() dto: CreateUserDto): Promise<CreatedResponseDto> {
     const { id } = await this.userService.create(dto);
     return CreatedResponseDto.create(id, 'User created successfully');
+  }
+
+  @Patch(':id')
+  public async update(
+    @Param() { id }: UuidDto,
+    @Body(new AtLeastOneFieldPipe()) dto: UpdateUserDto,
+  ): Promise<DefaultResponseDto> {
+    await this.userService.update(id, dto);
+    return DefaultResponseDto.create('User updated successfully');
   }
 }

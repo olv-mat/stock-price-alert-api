@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CryptographyService } from 'src/common/modules/cryptography/cryptography.service';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
@@ -30,6 +31,19 @@ export class UserService {
     return this.userRepository.save({
       ...dto,
       password: await this.cryptographyService.hash(dto.password),
+    });
+  }
+
+  public async update(id: string, dto: UpdateUserDto): Promise<void> {
+    const userEntity = await this.getById(id);
+    if (dto?.email && dto?.email !== userEntity.email) {
+      await this.assertEmailIsAvailable(dto.email);
+    }
+    await this.userRepository.update(userEntity.id, {
+      ...dto,
+      ...(dto?.password && {
+        password: await this.cryptographyService.hash(dto.password),
+      }),
     });
   }
 
