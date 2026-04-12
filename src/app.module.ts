@@ -9,9 +9,7 @@ import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
-    // npm i @nestjs/config
     ConfigModule.forRoot({ isGlobal: true }),
-    // npm i @nestjs/typeorm typeorm mysql2
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

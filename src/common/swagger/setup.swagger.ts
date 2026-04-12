@@ -2,8 +2,6 @@ import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 
-// npm i @nestjs/swagger swagger-ui-express swagger-themes
-
 export function setupSwagger(app: INestApplication): void {
   const document = SwaggerModule.createDocument(
     app,
