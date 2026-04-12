@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CryptographyService } from 'src/common/modules/cryptography/cryptography.service';
@@ -6,6 +6,7 @@ import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { UserService } from '../user.service';
+import { makeCreateUserDto } from './factories/create-user.dto.factory';
 import { makeUserEntity } from './factories/user.entity.factory';
 
 type UserServiceContext = {
@@ -22,7 +23,7 @@ describe('UserService', () => {
       providers: [
         {
           provide: getRepositoryToken(UserEntity),
-          useValue: { find: jest.fn(), findOneBy: jest.fn() },
+          useValue: { find: jest.fn(), findOneBy: jest.fn(), save: jest.fn() },
         },
         {
           provide: CryptographyService,
@@ -72,6 +73,49 @@ describe('UserService', () => {
         .mockResolvedValue(null);
       await expect(userService.findOne(id)).rejects.toThrow(NotFoundException);
       expect(spy).toHaveBeenCalledWith({ id: id });
+    });
+  });
+
+  describe('create', () => {
+    it('should create a new user', async () => {
+      const { userRepositoryMock, cryptographyServiceMock, userService } =
+        context;
+      const dto = makeCreateUserDto();
+      const userEntity = makeUserEntity();
+      const findOneBySpy = jest
+        .spyOn(userRepositoryMock, 'findOneBy')
+        .mockResolvedValue(null);
+      const hashSpy = jest
+        .spyOn(cryptographyServiceMock, 'hash')
+        .mockResolvedValue('');
+      const saveSpy = jest
+        .spyOn(userRepositoryMock, 'save')
+        .mockResolvedValue(userEntity);
+      const response = await userService.create(dto);
+      expect(findOneBySpy).toHaveBeenCalledWith({ email: dto.email });
+      expect(hashSpy).toHaveBeenCalledWith(dto.password);
+      expect(saveSpy).toHaveBeenCalledWith({
+        ...dto,
+        password: '',
+      });
+      expect(response).toEqual({
+        ...userEntity,
+        password: '',
+      });
+    });
+
+    it('should throw a conflict excpetion when email already in use', async () => {
+      const { userRepositoryMock, cryptographyServiceMock, userService } =
+        context;
+      const dto = makeCreateUserDto();
+      jest
+        .spyOn(userRepositoryMock, 'findOneBy')
+        .mockResolvedValue(makeUserEntity());
+      const hashSpy = jest.spyOn(cryptographyServiceMock, 'hash');
+      const saveSpy = jest.spyOn(userRepositoryMock, 'save');
+      await expect(userService.create(dto)).rejects.toThrow(ConflictException);
+      expect(hashSpy).not.toHaveBeenCalled();
+      expect(saveSpy).not.toHaveBeenCalled();
     });
   });
 });
