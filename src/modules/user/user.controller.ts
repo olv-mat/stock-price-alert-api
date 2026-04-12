@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
 import {
+  SwaggerConflict,
   SwaggerInternalServerError,
   SwaggerNotFound,
   SwaggerOperation,
@@ -32,6 +33,9 @@ export class UserController {
   }
 
   @Post()
+  @SwaggerOperation('Create a new user')
+  @SwaggerConflict('Email already in use')
+  @SwaggerInternalServerError()
   public async create(@Body() dto: CreateUserDto): Promise<CreatedResponseDto> {
     const { id } = await this.userService.create(dto);
     return CreatedResponseDto.create(id, 'User created successfully');

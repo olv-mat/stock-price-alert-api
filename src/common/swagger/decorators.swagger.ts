@@ -1,4 +1,5 @@
 import {
+  ApiConflictResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOperation,
@@ -15,6 +16,18 @@ export const SwaggerNotFound = (message: string) => {
         message: message,
         error: 'Not Found',
         statusCode: 404,
+      },
+    },
+  });
+};
+
+export const SwaggerConflict = (message: string) => {
+  return ApiConflictResponse({
+    schema: {
+      example: {
+        message: message,
+        error: 'Conflict',
+        statusCode: 409,
       },
     },
   });
