@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { UserService } from '../user.service';
 import { makeCreateUserDto } from './factories/create-user.dto.factory';
+import { makeUpdateUserDto } from './factories/update-user.dto.factory';
 import { makeUserEntity } from './factories/user.entity.factory';
 
 type UserServiceContext = {
@@ -23,7 +24,12 @@ describe('UserService', () => {
       providers: [
         {
           provide: getRepositoryToken(UserEntity),
-          useValue: { find: jest.fn(), findOneBy: jest.fn(), save: jest.fn() },
+          useValue: {
+            find: jest.fn(),
+            findOneBy: jest.fn(),
+            save: jest.fn(),
+            update: jest.fn(),
+          },
         },
         {
           provide: CryptographyService,
@@ -116,6 +122,77 @@ describe('UserService', () => {
       await expect(userService.create(dto)).rejects.toThrow(ConflictException);
       expect(hashSpy).not.toHaveBeenCalled();
       expect(saveSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('update', () => {
+    it('should update user', async () => {
+      const { userRepositoryMock, cryptographyServiceMock, userService } =
+        context;
+      const { id } = makeUuidDto();
+      const dto = makeUpdateUserDto({
+        name: 'Luna Doe',
+        email: 'luna.doe@test.com',
+        password: '@LunaDoe123',
+      });
+      const userEntity = makeUserEntity();
+      const findOneBySpy = jest
+        .spyOn(userRepositoryMock, 'findOneBy')
+        .mockResolvedValueOnce(userEntity)
+        .mockResolvedValueOnce(null);
+      const hashSpy = jest
+        .spyOn(cryptographyServiceMock, 'hash')
+        .mockResolvedValue('');
+      const updateSpy = jest.spyOn(userRepositoryMock, 'update');
+      await userService.update(id, dto);
+      expect(findOneBySpy).toHaveBeenNthCalledWith(1, { id: id });
+      expect(findOneBySpy).toHaveBeenNthCalledWith(2, { email: dto.email });
+      expect(hashSpy).toHaveBeenCalledWith(dto.password);
+      expect(updateSpy).toHaveBeenCalledWith(userEntity.id, {
+        ...dto,
+        password: '',
+      });
+    });
+
+    it('should throw a not found exception when user does not exist', async () => {
+      const { userRepositoryMock, cryptographyServiceMock, userService } =
+        context;
+      const { id } = makeUuidDto();
+      const dto = makeUpdateUserDto({ email: 'john.doe@changed.com' });
+      const findOneBySpy = jest
+        .spyOn(userRepositoryMock, 'findOneBy')
+        .mockResolvedValue(null);
+      const hashSpy = jest.spyOn(cryptographyServiceMock, 'hash');
+      const updateSpy = jest.spyOn(userRepositoryMock, 'update');
+      await expect(userService.update(id, dto)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(findOneBySpy).toHaveBeenCalledWith({ id: id });
+      expect(hashSpy).not.toHaveBeenCalled();
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should throw a conflict excpetion when email already in use', async () => {
+      const { userRepositoryMock, cryptographyServiceMock, userService } =
+        context;
+      const { id } = makeUuidDto();
+      const dto = makeUpdateUserDto({ email: 'john.doe@changed.com' });
+      const userEntity = makeUserEntity();
+      const findOneBySpy = jest
+        .spyOn(userRepositoryMock, 'findOneBy')
+        .mockResolvedValueOnce(userEntity)
+        .mockResolvedValueOnce(
+          makeUserEntity({ email: 'john.doe@changed.com' }),
+        );
+      const hashSpy = jest.spyOn(cryptographyServiceMock, 'hash');
+      const updateSpy = jest.spyOn(userRepositoryMock, 'update');
+      await expect(userService.update(id, dto)).rejects.toThrow(
+        ConflictException,
+      );
+      expect(findOneBySpy).toHaveBeenNthCalledWith(1, { id: id });
+      expect(findOneBySpy).toHaveBeenNthCalledWith(2, { email: dto.email });
+      expect(hashSpy).not.toHaveBeenCalled();
+      expect(updateSpy).not.toHaveBeenCalled();
     });
   });
 });
