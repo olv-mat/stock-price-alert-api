@@ -1,10 +1,16 @@
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
+import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { UserResponseDto } from '../dtos/user-response.dto';
 import { UserController } from '../user.controller';
 import { UserService } from '../user.service';
 import { makeCreateUserDto } from './factories/create-user.dto.factory';
+import { makeUpdateUserDto } from './factories/update-user.dto.factory';
 import { makeUserEntity } from './factories/user.entity.factory';
 
 describe('UserController', () => {
@@ -13,6 +19,7 @@ describe('UserController', () => {
     findAll: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
+    update: jest.fn(),
   };
 
   beforeEach(() => {
@@ -77,5 +84,31 @@ describe('UserController', () => {
         ConflictException,
       );
     });
+  });
+
+  describe('update', () => {
+    it('should return a default response', async () => {
+      const uuidDto = makeUuidDto();
+      const updateUserDto = makeUpdateUserDto();
+      userServiceMock.update.mockResolvedValue(undefined);
+      const response = await userController.update(uuidDto, updateUserDto);
+      expect(userServiceMock.update).toHaveBeenCalledWith(
+        uuidDto.id,
+        updateUserDto,
+      );
+      expect(response instanceof DefaultResponseDto).toBe(true);
+    });
+
+    it.each([new NotFoundException(), new ConflictException()])(
+      'should propagate service exceptions',
+      async (exception) => {
+        const uuidDto = makeUuidDto();
+        const updateUserDto = makeUpdateUserDto();
+        userServiceMock.update.mockRejectedValue(exception);
+        await expect(
+          userController.update(uuidDto, updateUserDto),
+        ).rejects.toThrow(exception);
+      },
+    );
   });
 });
