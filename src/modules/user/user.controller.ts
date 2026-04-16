@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
@@ -57,5 +65,11 @@ export class UserController {
   ): Promise<DefaultResponseDto> {
     await this.userService.update(id, dto);
     return DefaultResponseDto.create('User updated successfully');
+  }
+
+  @Delete(':id')
+  public async delete(@Param() { id }: UuidDto): Promise<DefaultResponseDto> {
+    await this.userService.delete(id);
+    return DefaultResponseDto.create('User deleted successfully');
   }
 }
