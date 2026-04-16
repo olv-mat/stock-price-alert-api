@@ -68,6 +68,9 @@ export class UserController {
   }
 
   @Delete(':id')
+  @SwaggerOperation('Delete a specific user')
+  @SwaggerNotFound('User not found')
+  @SwaggerInternalServerError()
   public async delete(@Param() { id }: UuidDto): Promise<DefaultResponseDto> {
     await this.userService.delete(id);
     return DefaultResponseDto.create('User deleted successfully');
