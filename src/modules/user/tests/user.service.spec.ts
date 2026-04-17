@@ -29,6 +29,7 @@ describe('UserService', () => {
             findOneBy: jest.fn(),
             save: jest.fn(),
             update: jest.fn(),
+            delete: jest.fn(),
           },
         },
         {
@@ -193,6 +194,37 @@ describe('UserService', () => {
       expect(findOneBySpy).toHaveBeenNthCalledWith(2, { email: dto.email });
       expect(hashSpy).not.toHaveBeenCalled();
       expect(updateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete a user', async () => {
+      const { userRepositoryMock, userService } = context;
+      const { id } = makeUuidDto();
+      const userEntity = makeUserEntity();
+      const spies = {
+        findOneBy: jest
+          .spyOn(userRepositoryMock, 'findOneBy')
+          .mockResolvedValue(userEntity),
+        delete: jest.spyOn(userRepositoryMock, 'delete'),
+      };
+      await userService.delete(id);
+      expect(spies.findOneBy).toHaveBeenCalledWith({ id: id });
+      expect(spies.delete).toHaveBeenCalledWith(userEntity.id);
+    });
+
+    it('should throw a not found exception when user does not exist', async () => {
+      const { userRepositoryMock, userService } = context;
+      const { id } = makeUuidDto();
+      const spies = {
+        findOneBy: jest
+          .spyOn(userRepositoryMock, 'findOneBy')
+          .mockResolvedValue(null),
+        delete: jest.spyOn(userRepositoryMock, 'delete'),
+      };
+      await expect(userService.delete(id)).rejects.toThrow(NotFoundException);
+      expect(spies.findOneBy).toHaveBeenCalledWith({ id: id });
+      expect(spies.delete).not.toHaveBeenCalled();
     });
   });
 });
