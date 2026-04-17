@@ -20,6 +20,7 @@ describe('UserController', () => {
     findOne: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    delete: jest.fn(),
   };
 
   beforeEach(() => {
@@ -108,7 +109,30 @@ describe('UserController', () => {
         await expect(
           userController.update(uuidDto, updateUserDto),
         ).rejects.toThrow(exception);
+        expect(userServiceMock.update).toHaveBeenCalledWith(
+          uuidDto.id,
+          updateUserDto,
+        );
       },
     );
+  });
+
+  describe('delete', () => {
+    it('should return a default response', async () => {
+      const dto = makeUuidDto();
+      userServiceMock.delete.mockResolvedValue(undefined);
+      const response = await userController.delete(dto);
+      expect(userServiceMock.delete).toHaveBeenCalledWith(dto.id);
+      expect(response instanceof DefaultResponseDto).toBe(true);
+    });
+
+    it('should propagate service exceptions', async () => {
+      const dto = makeUuidDto();
+      userServiceMock.delete.mockRejectedValue(new NotFoundException());
+      await expect(userController.delete(dto)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(userServiceMock.delete).toHaveBeenCalledWith(dto.id);
+    });
   });
 });
