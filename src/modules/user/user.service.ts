@@ -59,9 +59,9 @@ export class UserService {
   }
 
   private async assertEmailIsAvailable(email: string): Promise<void> {
-    const userEntity = await this.userRepository.findOneBy({
-      email: email,
+    const exists = await this.userRepository.exists({
+      where: { email: email },
     });
-    if (userEntity) throw new ConflictException('Email already in use');
+    if (exists) throw new ConflictException('Email already in use');
   }
 }
