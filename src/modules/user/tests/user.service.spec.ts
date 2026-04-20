@@ -11,9 +11,9 @@ import { makeUpdateUserDto } from './factories/update-user.dto.factory';
 import { makeUserEntity } from './factories/user.entity.factory';
 
 type UserServiceContext = {
+  userService: UserService;
   userRepositoryMock: Repository<UserEntity>;
   cryptographyServiceMock: CryptographyService;
-  userService: UserService;
 };
 
 describe('UserService', () => {
@@ -22,11 +22,13 @@ describe('UserService', () => {
     jest.clearAllMocks();
     const module = await Test.createTestingModule({
       providers: [
+        UserService,
         {
           provide: getRepositoryToken(UserEntity),
           useValue: {
             find: jest.fn(),
             findOneBy: jest.fn(),
+            exists: jest.fn(),
             save: jest.fn(),
             update: jest.fn(),
             delete: jest.fn(),
@@ -34,21 +36,22 @@ describe('UserService', () => {
         },
         {
           provide: CryptographyService,
-          useValue: { hash: jest.fn() },
+          useValue: {
+            hash: jest.fn(),
+          },
         },
-        UserService,
       ],
     }).compile();
     context = {
+      userService: module.get(UserService),
       userRepositoryMock: module.get(getRepositoryToken(UserEntity)),
       cryptographyServiceMock: module.get(CryptographyService),
-      userService: module.get(UserService),
     };
   });
 
   describe('findAll', () => {
     it('should return a list of users', async () => {
-      const { userRepositoryMock, userService } = context;
+      const { userService, userRepositoryMock } = context;
       const userEntities = [makeUserEntity()];
       const spy = jest
         .spyOn(userRepositoryMock, 'find')
@@ -61,7 +64,7 @@ describe('UserService', () => {
 
   describe('findOne', () => {
     it('should return a user', async () => {
-      const { userRepositoryMock, userService } = context;
+      const { userService, userRepositoryMock } = context;
       const { id } = makeUuidDto();
       const userEntity = makeUserEntity();
       const spy = jest
@@ -73,7 +76,7 @@ describe('UserService', () => {
     });
 
     it('should throw a not found exception when user does not exist', async () => {
-      const { userRepositoryMock, userService } = context;
+      const { userService, userRepositoryMock } = context;
       const { id } = makeUuidDto();
       const spy = jest
         .spyOn(userRepositoryMock, 'findOneBy')
@@ -85,23 +88,25 @@ describe('UserService', () => {
 
   describe('create', () => {
     it('should create a new user', async () => {
-      const { userRepositoryMock, cryptographyServiceMock, userService } =
+      const { userService, userRepositoryMock, cryptographyServiceMock } =
         context;
       const dto = makeCreateUserDto();
       const userEntity = makeUserEntity();
-      const findOneBySpy = jest
-        .spyOn(userRepositoryMock, 'findOneBy')
-        .mockResolvedValue(null);
-      const hashSpy = jest
-        .spyOn(cryptographyServiceMock, 'hash')
-        .mockResolvedValue('');
-      const saveSpy = jest
-        .spyOn(userRepositoryMock, 'save')
-        .mockResolvedValue(userEntity);
+      const spies = {
+        exists: jest
+          .spyOn(userRepositoryMock, 'exists')
+          .mockResolvedValue(false),
+        hash: jest.spyOn(cryptographyServiceMock, 'hash').mockResolvedValue(''),
+        save: jest
+          .spyOn(userRepositoryMock, 'save')
+          .mockResolvedValue(userEntity),
+      };
       const response = await userService.create(dto);
-      expect(findOneBySpy).toHaveBeenCalledWith({ email: dto.email });
-      expect(hashSpy).toHaveBeenCalledWith(dto.password);
-      expect(saveSpy).toHaveBeenCalledWith({
+      expect(spies.exists).toHaveBeenCalledWith({
+        where: { email: dto.email },
+      });
+      expect(spies.hash).toHaveBeenCalledWith(dto.password);
+      expect(spies.save).toHaveBeenCalledWith({
         ...dto,
         password: '',
       });
@@ -112,23 +117,25 @@ describe('UserService', () => {
     });
 
     it('should throw a conflict excpetion when email already in use', async () => {
-      const { userRepositoryMock, cryptographyServiceMock, userService } =
+      const { userService, userRepositoryMock, cryptographyServiceMock } =
         context;
       const dto = makeCreateUserDto();
-      jest
-        .spyOn(userRepositoryMock, 'findOneBy')
-        .mockResolvedValue(makeUserEntity());
-      const hashSpy = jest.spyOn(cryptographyServiceMock, 'hash');
-      const saveSpy = jest.spyOn(userRepositoryMock, 'save');
+      const spies = {
+        exists: jest
+          .spyOn(userRepositoryMock, 'exists')
+          .mockResolvedValue(true),
+        hash: jest.spyOn(cryptographyServiceMock, 'hash'),
+        save: jest.spyOn(userRepositoryMock, 'save'),
+      };
       await expect(userService.create(dto)).rejects.toThrow(ConflictException);
-      expect(hashSpy).not.toHaveBeenCalled();
-      expect(saveSpy).not.toHaveBeenCalled();
+      expect(spies.hash).not.toHaveBeenCalled();
+      expect(spies.save).not.toHaveBeenCalled();
     });
   });
 
   describe('update', () => {
-    it('should update user', async () => {
-      const { userRepositoryMock, cryptographyServiceMock, userService } =
+    it('should update a user', async () => {
+      const { userService, userRepositoryMock, cryptographyServiceMock } =
         context;
       const { id } = makeUuidDto();
       const dto = makeUpdateUserDto({
@@ -137,69 +144,81 @@ describe('UserService', () => {
         password: '@LunaDoe123',
       });
       const userEntity = makeUserEntity();
-      const findOneBySpy = jest
-        .spyOn(userRepositoryMock, 'findOneBy')
-        .mockResolvedValueOnce(userEntity)
-        .mockResolvedValueOnce(null);
-      const hashSpy = jest
-        .spyOn(cryptographyServiceMock, 'hash')
-        .mockResolvedValue('');
-      const updateSpy = jest.spyOn(userRepositoryMock, 'update');
+      const spies = {
+        findOneBy: jest
+          .spyOn(userRepositoryMock, 'findOneBy')
+          .mockResolvedValue(userEntity),
+        exists: jest
+          .spyOn(userRepositoryMock, 'exists')
+          .mockResolvedValue(false),
+        hash: jest.spyOn(cryptographyServiceMock, 'hash').mockResolvedValue(''),
+        update: jest.spyOn(userRepositoryMock, 'update'),
+      };
       await userService.update(id, dto);
-      expect(findOneBySpy).toHaveBeenNthCalledWith(1, { id: id });
-      expect(findOneBySpy).toHaveBeenNthCalledWith(2, { email: dto.email });
-      expect(hashSpy).toHaveBeenCalledWith(dto.password);
-      expect(updateSpy).toHaveBeenCalledWith(userEntity.id, {
+      expect(spies.findOneBy).toHaveBeenCalledWith({ id: id });
+      expect(spies.exists).toHaveBeenCalledWith({
+        where: { email: dto.email },
+      });
+      expect(spies.hash).toHaveBeenCalledWith(dto.password);
+      expect(spies.update).toHaveBeenCalledWith(userEntity.id, {
         ...dto,
         password: '',
       });
     });
 
     it('should throw a not found exception when user does not exist', async () => {
-      const { userRepositoryMock, cryptographyServiceMock, userService } =
+      const { userService, userRepositoryMock, cryptographyServiceMock } =
         context;
       const { id } = makeUuidDto();
       const dto = makeUpdateUserDto({ email: 'john.doe@changed.com' });
-      const findOneBySpy = jest
-        .spyOn(userRepositoryMock, 'findOneBy')
-        .mockResolvedValue(null);
-      const hashSpy = jest.spyOn(cryptographyServiceMock, 'hash');
-      const updateSpy = jest.spyOn(userRepositoryMock, 'update');
+      const spies = {
+        findOneBy: jest
+          .spyOn(userRepositoryMock, 'findOneBy')
+          .mockResolvedValue(null),
+        exists: jest.spyOn(userRepositoryMock, 'exists'),
+        hash: jest.spyOn(cryptographyServiceMock, 'hash'),
+        update: jest.spyOn(userRepositoryMock, 'update'),
+      };
       await expect(userService.update(id, dto)).rejects.toThrow(
         NotFoundException,
       );
-      expect(findOneBySpy).toHaveBeenCalledWith({ id: id });
-      expect(hashSpy).not.toHaveBeenCalled();
-      expect(updateSpy).not.toHaveBeenCalled();
+      expect(spies.findOneBy).toHaveBeenCalledWith({ id: id });
+      expect(spies.exists).not.toHaveBeenCalled();
+      expect(spies.hash).not.toHaveBeenCalled();
+      expect(spies.update).not.toHaveBeenCalled();
     });
 
     it('should throw a conflict excpetion when email already in use', async () => {
-      const { userRepositoryMock, cryptographyServiceMock, userService } =
+      const { userService, userRepositoryMock, cryptographyServiceMock } =
         context;
       const { id } = makeUuidDto();
       const dto = makeUpdateUserDto({ email: 'john.doe@changed.com' });
       const userEntity = makeUserEntity();
-      const findOneBySpy = jest
-        .spyOn(userRepositoryMock, 'findOneBy')
-        .mockResolvedValueOnce(userEntity)
-        .mockResolvedValueOnce(
-          makeUserEntity({ email: 'john.doe@changed.com' }),
-        );
-      const hashSpy = jest.spyOn(cryptographyServiceMock, 'hash');
-      const updateSpy = jest.spyOn(userRepositoryMock, 'update');
+      const spies = {
+        findOneBy: jest
+          .spyOn(userRepositoryMock, 'findOneBy')
+          .mockResolvedValue(userEntity),
+        exists: jest
+          .spyOn(userRepositoryMock, 'exists')
+          .mockResolvedValue(true),
+        hash: jest.spyOn(cryptographyServiceMock, 'hash'),
+        update: jest.spyOn(userRepositoryMock, 'update'),
+      };
       await expect(userService.update(id, dto)).rejects.toThrow(
         ConflictException,
       );
-      expect(findOneBySpy).toHaveBeenNthCalledWith(1, { id: id });
-      expect(findOneBySpy).toHaveBeenNthCalledWith(2, { email: dto.email });
-      expect(hashSpy).not.toHaveBeenCalled();
-      expect(updateSpy).not.toHaveBeenCalled();
+      expect(spies.findOneBy).toHaveBeenCalledWith({ id: id });
+      expect(spies.exists).toHaveBeenCalledWith({
+        where: { email: dto.email },
+      });
+      expect(spies.hash).not.toHaveBeenCalled();
+      expect(spies.update).not.toHaveBeenCalled();
     });
   });
 
   describe('delete', () => {
     it('should delete a user', async () => {
-      const { userRepositoryMock, userService } = context;
+      const { userService, userRepositoryMock } = context;
       const { id } = makeUuidDto();
       const userEntity = makeUserEntity();
       const spies = {
@@ -214,7 +233,7 @@ describe('UserService', () => {
     });
 
     it('should throw a not found exception when user does not exist', async () => {
-      const { userRepositoryMock, userService } = context;
+      const { userService, userRepositoryMock } = context;
       const { id } = makeUuidDto();
       const spies = {
         findOneBy: jest
