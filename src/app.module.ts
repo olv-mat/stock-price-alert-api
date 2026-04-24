@@ -6,6 +6,7 @@ import { AlertModule } from './modules/alert/alert.module';
 import { AlertEntity } from './modules/alert/entities/alert.entity';
 import { UserEntity } from './modules/user/entities/user.entity';
 import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UserModule } from './modules/user/user.module';
     CryptographyModule,
     AlertModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [],
   providers: [],
