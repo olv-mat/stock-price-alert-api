@@ -18,6 +18,10 @@ export class UserService {
     private readonly cryptographyService: CryptographyService,
   ) {}
 
+  public findByEmail(email: string): Promise<UserEntity | null> {
+    return this.userRepository.findOneBy({ email: email });
+  }
+
   public findAll(): Promise<UserEntity[]> {
     return this.userRepository.find();
   }
