@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CredentialModule } from './common/modules/credential/credential.module';
 import { CryptographyModule } from './common/modules/cryptography/cryptography.module';
 import { AlertModule } from './modules/alert/alert.module';
 import { AlertEntity } from './modules/alert/entities/alert.entity';
+import { AuthModule } from './modules/auth/auth.module';
 import { UserEntity } from './modules/user/entities/user.entity';
 import { UserModule } from './modules/user/user.module';
-import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AuthModule } from './modules/auth/auth.module';
         synchronize: true,
       }),
     }),
+    CredentialModule,
     CryptographyModule,
     AlertModule,
     UserModule,

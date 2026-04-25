@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
-import { BcryptServiceImplementation } from './bcrypt.service';
 import { CryptographyService } from './cryptography.service';
+import { BcryptServiceImplementation } from './implementations/bcrypt.service';
 
 @Global()
 @Module({
