@@ -8,9 +8,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { FromRequest } from 'src/common/decorators/from-request.decorator';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
+import { AccessTokenPayload } from 'src/common/modules/credential/contracts/access-token-payload';
 import { AtLeastOneFieldPipe } from 'src/common/pipes/at-least-one-field.pipe';
 import {
   SwaggerBadRequest,
@@ -19,6 +21,7 @@ import {
   SwaggerInternalServerError,
   SwaggerNotFound,
   SwaggerOperation,
+  SwaggerUnauthorized,
 } from 'src/common/swagger/decorators.swagger';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -32,20 +35,15 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  @SwaggerOperation('Retrieve all users')
-  @SwaggerInternalServerError()
-  public async findAll(): Promise<UserResponseDto[]> {
-    const userEntities = await this.userService.findAll();
-    return UserResponseDto.fromEntities(userEntities);
-  }
-
-  @Get(':id')
-  @SwaggerOperation('Retrieve a specific user')
+  @Get('/me')
+  @SwaggerOperation('Retrieve the current user')
+  @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerNotFound('User not found')
   @SwaggerInternalServerError()
-  public async findOne(@Param() { id }: UuidDto): Promise<UserResponseDto> {
-    const userEntity = await this.userService.findOne(id);
+  public async find(
+    @FromRequest('user') user: AccessTokenPayload,
+  ): Promise<UserResponseDto> {
+    const userEntity = await this.userService.find(user.sub);
     return UserResponseDto.fromEntity(userEntity);
   }
 

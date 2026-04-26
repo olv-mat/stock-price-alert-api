@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
+import { makeAccessTokenPayload } from 'src/common/test/factories/access-token-payload.factory';
 import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { UserResponseDto } from '../dtos/user-response.dto';
 import { UserController } from '../user.controller';
@@ -16,8 +17,7 @@ import { makeUserEntity } from './factories/user.entity.factory';
 describe('UserController', () => {
   let userController: UserController;
   const userServiceMock = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
+    find: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -30,42 +30,22 @@ describe('UserController', () => {
     );
   });
 
-  describe('findAll', () => {
-    it('should return a list of mapped users', async () => {
-      userServiceMock.findAll.mockResolvedValue([makeUserEntity()]);
-      const response = await userController.findAll();
-      expect(userServiceMock.findAll).toHaveBeenCalledWith();
-      expect(Array.isArray(response)).toBe(true);
-      expect(response.every((item) => item instanceof UserResponseDto)).toBe(
-        true,
-      );
-    });
-
-    it('should return a empty array if no users found', async () => {
-      userServiceMock.findAll.mockResolvedValue([]);
-      const response = await userController.findAll();
-      expect(userServiceMock.findAll).toHaveBeenCalledWith();
-      expect(Array.isArray(response)).toBe(true);
-      expect(response).toEqual([]);
-    });
-  });
-
-  describe('findOne', () => {
+  describe('find', () => {
     it('should return a mapped user', async () => {
-      const dto = makeUuidDto();
-      userServiceMock.findOne.mockResolvedValue(makeUserEntity());
-      const response = await userController.findOne(dto);
-      expect(userServiceMock.findOne).toHaveBeenCalledWith(dto.id);
+      const user = makeAccessTokenPayload();
+      userServiceMock.find.mockResolvedValue(makeUserEntity());
+      const response = await userController.find(user);
+      expect(userServiceMock.find).toHaveBeenCalledWith(user.sub);
       expect(response instanceof UserResponseDto).toBe(true);
     });
 
     it('should propagate service exceptions', async () => {
-      const dto = makeUuidDto();
-      userServiceMock.findOne.mockRejectedValue(new BadRequestException());
-      await expect(userController.findOne(dto)).rejects.toThrow(
+      const user = makeAccessTokenPayload();
+      userServiceMock.find.mockRejectedValue(new BadRequestException());
+      await expect(userController.find(user)).rejects.toThrow(
         BadRequestException,
       );
-      expect(userServiceMock.findOne).toHaveBeenCalledWith(dto.id);
+      expect(userServiceMock.find).toHaveBeenCalledWith(user.sub);
     });
   });
 

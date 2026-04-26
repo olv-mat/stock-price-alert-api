@@ -49,20 +49,7 @@ describe('UserService', () => {
     };
   });
 
-  describe('findAll', () => {
-    it('should return a list of users', async () => {
-      const { userService, userRepositoryMock } = context;
-      const userEntities = [makeUserEntity()];
-      const spy = jest
-        .spyOn(userRepositoryMock, 'find')
-        .mockResolvedValue(userEntities);
-      const response = await userService.findAll();
-      expect(spy).toHaveBeenCalledWith();
-      expect(response).toEqual(userEntities);
-    });
-  });
-
-  describe('findOne', () => {
+  describe('find', () => {
     it('should return a user', async () => {
       const { userService, userRepositoryMock } = context;
       const { id } = makeUuidDto();
@@ -70,7 +57,7 @@ describe('UserService', () => {
       const spy = jest
         .spyOn(userRepositoryMock, 'findOneBy')
         .mockResolvedValue(userEntity);
-      const response = await userService.findOne(id);
+      const response = await userService.find(id);
       expect(spy).toHaveBeenCalledWith({ id: id });
       expect(response).toEqual(userEntity);
     });
@@ -81,7 +68,7 @@ describe('UserService', () => {
       const spy = jest
         .spyOn(userRepositoryMock, 'findOneBy')
         .mockResolvedValue(null);
-      await expect(userService.findOne(id)).rejects.toThrow(NotFoundException);
+      await expect(userService.find(id)).rejects.toThrow(NotFoundException);
       expect(spy).toHaveBeenCalledWith({ id: id });
     });
   });

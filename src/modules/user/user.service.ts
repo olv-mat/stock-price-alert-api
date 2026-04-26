@@ -22,11 +22,7 @@ export class UserService {
     return this.userRepository.findOneBy({ email: email });
   }
 
-  public findAll(): Promise<UserEntity[]> {
-    return this.userRepository.find();
-  }
-
-  public findOne(id: string): Promise<UserEntity> {
+  public find(id: string): Promise<UserEntity> {
     return this.getById(id);
   }
 
