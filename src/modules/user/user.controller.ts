@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
   Patch,
   Post,
   UseGuards,
@@ -11,7 +10,6 @@ import {
 import { FromRequest } from 'src/common/decorators/from-request.decorator';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
-import { UuidDto } from 'src/common/dtos/uuid.dto';
 import { AccessTokenPayload } from 'src/common/modules/credential/contracts/access-token-payload';
 import { AtLeastOneFieldPipe } from 'src/common/pipes/at-least-one-field.pipe';
 import {
@@ -73,12 +71,17 @@ export class UserController {
     );
   }
 
-  @Delete(':id')
-  @SwaggerOperation('Delete a specific user')
+  @Delete('/me')
+  @SwaggerOperation('Delete the current user')
+  @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerNotFound('User not found')
   @SwaggerInternalServerError()
-  public async delete(@Param() { id }: UuidDto): Promise<DefaultResponseDto> {
-    await this.userService.delete(id);
-    return DefaultResponseDto.create('User deleted successfully');
+  public async delete(
+    @FromRequest('user') user: AccessTokenPayload,
+  ): Promise<DefaultResponseDto> {
+    await this.userService.delete(user.sub);
+    return DefaultResponseDto.create(
+      'Your account has been deleted successfully',
+    );
   }
 }

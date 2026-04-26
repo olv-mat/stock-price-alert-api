@@ -6,7 +6,6 @@ import {
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { makeAccessTokenPayload } from 'src/common/test/factories/access-token-payload.factory';
-import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { UserResponseDto } from '../dtos/user-response.dto';
 import { UserController } from '../user.controller';
 import { UserService } from '../user.service';
@@ -99,20 +98,20 @@ describe('UserController', () => {
 
   describe('delete', () => {
     it('should return a default response', async () => {
-      const dto = makeUuidDto();
+      const user = makeAccessTokenPayload();
       userServiceMock.delete.mockResolvedValue(undefined);
-      const response = await userController.delete(dto);
-      expect(userServiceMock.delete).toHaveBeenCalledWith(dto.id);
+      const response = await userController.delete(user);
+      expect(userServiceMock.delete).toHaveBeenCalledWith(user.sub);
       expect(response instanceof DefaultResponseDto).toBe(true);
     });
 
     it('should propagate service exceptions', async () => {
-      const dto = makeUuidDto();
+      const user = makeAccessTokenPayload();
       userServiceMock.delete.mockRejectedValue(new NotFoundException());
-      await expect(userController.delete(dto)).rejects.toThrow(
+      await expect(userController.delete(user)).rejects.toThrow(
         NotFoundException,
       );
-      expect(userServiceMock.delete).toHaveBeenCalledWith(dto.id);
+      expect(userServiceMock.delete).toHaveBeenCalledWith(user.sub);
     });
   });
 });
