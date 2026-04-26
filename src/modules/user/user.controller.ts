@@ -56,18 +56,21 @@ export class UserController {
     return CreatedResponseDto.create(id, 'User created successfully');
   }
 
-  @Patch(':id')
-  @SwaggerOperation('Update a specific user')
+  @Patch('/me')
+  @SwaggerOperation('Update the current user')
   @SwaggerBadRequest('At least one field must be provided')
+  @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerNotFound('User not found')
   @SwaggerConflict('Email already in use')
   @SwaggerInternalServerError()
   public async update(
-    @Param() { id }: UuidDto,
+    @FromRequest('user') user: AccessTokenPayload,
     @Body(new AtLeastOneFieldPipe()) dto: UpdateUserDto,
   ): Promise<DefaultResponseDto> {
-    await this.userService.update(id, dto);
-    return DefaultResponseDto.create('User updated successfully');
+    await this.userService.update(user.sub, dto);
+    return DefaultResponseDto.create(
+      'Your account has been updated successfully',
+    );
   }
 
   @Delete(':id')

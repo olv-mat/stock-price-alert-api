@@ -69,12 +69,12 @@ describe('UserController', () => {
 
   describe('update', () => {
     it('should return a default response', async () => {
-      const uuidDto = makeUuidDto();
+      const user = makeAccessTokenPayload();
       const updateUserDto = makeUpdateUserDto();
       userServiceMock.update.mockResolvedValue(undefined);
-      const response = await userController.update(uuidDto, updateUserDto);
+      const response = await userController.update(user, updateUserDto);
       expect(userServiceMock.update).toHaveBeenCalledWith(
-        uuidDto.id,
+        user.sub,
         updateUserDto,
       );
       expect(response instanceof DefaultResponseDto).toBe(true);
@@ -83,14 +83,14 @@ describe('UserController', () => {
     it.each([new NotFoundException(), new ConflictException()])(
       'should propagate service exceptions',
       async (exception) => {
-        const uuidDto = makeUuidDto();
+        const user = makeAccessTokenPayload();
         const updateUserDto = makeUpdateUserDto();
         userServiceMock.update.mockRejectedValue(exception);
         await expect(
-          userController.update(uuidDto, updateUserDto),
+          userController.update(user, updateUserDto),
         ).rejects.toThrow(exception);
         expect(userServiceMock.update).toHaveBeenCalledWith(
-          uuidDto.id,
+          user.sub,
           updateUserDto,
         );
       },
