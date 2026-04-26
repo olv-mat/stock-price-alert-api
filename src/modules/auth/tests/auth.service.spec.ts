@@ -1,7 +1,8 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { CredentialService } from 'src/common/modules/credential/credential.service';
 import { CryptographyService } from 'src/common/modules/cryptography/cryptography.service';
+import { makeCreateUserDto } from 'src/modules/user/tests/factories/create-user.dto.factory';
 import { makeUserEntity } from 'src/modules/user/tests/factories/user.entity.factory';
 import { UserService } from 'src/modules/user/user.service';
 import { AuthService } from '../auth.service';
@@ -25,6 +26,7 @@ describe('AuthService', () => {
           provide: UserService,
           useValue: {
             findByEmail: jest.fn(),
+            create: jest.fn(),
           },
         },
         {
@@ -80,7 +82,10 @@ describe('AuthService', () => {
         name: userEntity.name,
         email: userEntity.email,
       });
-      expect(response).toBe(token);
+      expect(response).toEqual({
+        userEntity,
+        token,
+      });
     });
 
     it('should throw a unauthorized exception when user not found', async () => {
@@ -133,6 +138,42 @@ describe('AuthService', () => {
         userEntity.password,
       );
       expect(spies.sign).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('register', () => {
+    it('should register a user and return an access token', async () => {
+      const { authService, userService, credentialService } = context;
+      const dto = makeCreateUserDto();
+      const userEntity = makeUserEntity();
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+      const spies = {
+        create: jest.spyOn(userService, 'create').mockResolvedValue(userEntity),
+        sign: jest.spyOn(credentialService, 'sign').mockResolvedValue(token),
+      };
+      const response = await authService.register(dto);
+      expect(spies.create).toHaveBeenCalledWith(dto);
+      expect(spies.sign).toHaveBeenCalledWith({
+        sub: userEntity.id,
+        name: userEntity.name,
+        email: userEntity.email,
+      });
+      expect(response).toEqual({
+        userEntity,
+        token,
+      });
+    });
+
+    it('should propagate service exceptions', async () => {
+      const { authService, userService } = context;
+      const dto = makeCreateUserDto();
+      const spy = jest
+        .spyOn(userService, 'create')
+        .mockRejectedValue(new ConflictException());
+      await expect(authService.register(dto)).rejects.toThrow(
+        ConflictException,
+      );
+      expect(spy).toHaveBeenCalledWith(dto);
     });
   });
 });
