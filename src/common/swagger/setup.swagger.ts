@@ -10,13 +10,14 @@ export function setupSwagger(app: INestApplication): void {
       .setDescription(
         'A NestJS stock price alert API. It allows users to set alerts for specific tickers and leverages BullMQ queues for efficient background processing, triggering email notifications when target prices are reached.',
       )
-      .setVersion('1.0')
+      .addBearerAuth()
       .build(),
   );
   const theme = new SwaggerTheme();
   SwaggerModule.setup('/api', app, document, {
     customCss: theme.getBuffer(SwaggerThemeNameEnum.DARK),
     swaggerOptions: {
+      persistAuthorization: true,
       tagsSorter: 'alpha',
       operationsSorter: 'alpha',
     },

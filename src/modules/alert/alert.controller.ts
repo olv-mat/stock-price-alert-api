@@ -1,17 +1,29 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
 import {
+  SwaggerBearerAuth,
   SwaggerInternalServerError,
   SwaggerNotFound,
   SwaggerOperation,
 } from 'src/common/swagger/decorators.swagger';
+import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AlertService } from './alert.service';
 import { AlertResponseDto } from './dtos/alert-response.dto';
 import { CreateAlertDto } from './dtos/create-alert.dto';
 
 @Controller('alerts')
+@UseGuards(JwtGuard)
+@SwaggerBearerAuth()
 export class AlertController {
   constructor(private readonly alertService: AlertService) {}
 

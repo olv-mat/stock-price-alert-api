@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
@@ -13,17 +14,21 @@ import { UuidDto } from 'src/common/dtos/uuid.dto';
 import { AtLeastOneFieldPipe } from 'src/common/pipes/at-least-one-field.pipe';
 import {
   SwaggerBadRequest,
+  SwaggerBearerAuth,
   SwaggerConflict,
   SwaggerInternalServerError,
   SwaggerNotFound,
   SwaggerOperation,
 } from 'src/common/swagger/decorators.swagger';
+import { JwtGuard } from '../auth/guards/jwt.guard';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { UserService } from './user.service';
 
 @Controller('users')
+@UseGuards(JwtGuard)
+@SwaggerBearerAuth()
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
