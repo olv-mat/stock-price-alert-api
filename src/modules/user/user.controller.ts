@@ -4,11 +4,9 @@ import {
   Delete,
   Get,
   Patch,
-  Post,
   UseGuards,
 } from '@nestjs/common';
 import { FromRequest } from 'src/common/decorators/from-request.decorator';
-import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { AccessTokenPayload } from 'src/common/modules/credential/contracts/access-token-payload';
 import { AtLeastOneFieldPipe } from 'src/common/pipes/at-least-one-field.pipe';
@@ -22,7 +20,6 @@ import {
   SwaggerUnauthorized,
 } from 'src/common/swagger/decorators.swagger';
 import { JwtGuard } from '../auth/guards/jwt.guard';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { UserService } from './user.service';
@@ -43,15 +40,6 @@ export class UserController {
   ): Promise<UserResponseDto> {
     const userEntity = await this.userService.find(user.sub);
     return UserResponseDto.fromEntity(userEntity);
-  }
-
-  @Post()
-  @SwaggerOperation('Create a new user')
-  @SwaggerConflict('Email already in use')
-  @SwaggerInternalServerError()
-  public async create(@Body() dto: CreateUserDto): Promise<CreatedResponseDto> {
-    const { id } = await this.userService.create(dto);
-    return CreatedResponseDto.create(id, 'User created successfully');
   }
 
   @Patch('/me')

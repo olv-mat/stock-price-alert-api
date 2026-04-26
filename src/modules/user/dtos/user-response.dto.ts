@@ -17,10 +17,6 @@ export class UserResponseDto {
     this.email = properties.email;
   }
 
-  public static fromEntities(entities: UserEntity[]): UserResponseDto[] {
-    return entities.map((entity) => this.fromEntity(entity));
-  }
-
   public static fromEntity(entity: UserEntity): UserResponseDto {
     return new UserResponseDto({
       id: entity.id,
