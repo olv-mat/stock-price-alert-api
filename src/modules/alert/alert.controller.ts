@@ -15,6 +15,7 @@ import {
   SwaggerInternalServerError,
   SwaggerNotFound,
   SwaggerOperation,
+  SwaggerUnauthorized,
 } from 'src/common/swagger/decorators.swagger';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AlertService } from './alert.service';
@@ -29,6 +30,7 @@ export class AlertController {
 
   @Get()
   @SwaggerOperation('Retrieve all alerts')
+  @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerInternalServerError()
   public async findAll(): Promise<AlertResponseDto[]> {
     const alertEntities = await this.alertService.findAll();
@@ -37,6 +39,7 @@ export class AlertController {
 
   @Get(':id')
   @SwaggerOperation('Retrieve a specific alert')
+  @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerNotFound('Alert not found')
   @SwaggerInternalServerError()
   public async findOne(@Param() { id }: UuidDto): Promise<AlertResponseDto> {
@@ -46,6 +49,7 @@ export class AlertController {
 
   @Post()
   @SwaggerOperation('Create a new alert')
+  @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerInternalServerError()
   public async create(
     @Body() dto: CreateAlertDto,
@@ -56,6 +60,7 @@ export class AlertController {
 
   @Delete(':id')
   @SwaggerOperation('Delete a specific alert')
+  @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerNotFound('Alert not found')
   @SwaggerInternalServerError()
   public async delete(@Param() { id }: UuidDto): Promise<DefaultResponseDto> {
