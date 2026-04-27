@@ -19,8 +19,11 @@ export class AlertService {
     return this.getById(id);
   }
 
-  public async create(dto: CreateAlertDto): Promise<AlertEntity> {
-    return await this.alertRepository.save(dto);
+  public async create(sub: string, dto: CreateAlertDto): Promise<AlertEntity> {
+    return await this.alertRepository.save({
+      ...dto,
+      user: { id: sub },
+    });
   }
 
   public async delete(id: string): Promise<void> {

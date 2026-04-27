@@ -7,9 +7,11 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { FromRequest } from 'src/common/decorators/from-request.decorator';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
+import { AccessTokenPayload } from 'src/common/modules/credential/contracts/access-token-payload';
 import {
   SwaggerBearerAuth,
   SwaggerInternalServerError,
@@ -52,9 +54,10 @@ export class AlertController {
   @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerInternalServerError()
   public async create(
+    @FromRequest('user') user: AccessTokenPayload,
     @Body() dto: CreateAlertDto,
   ): Promise<CreatedResponseDto> {
-    const { id } = await this.alertService.create(dto);
+    const { id } = await this.alertService.create(user.sub, dto);
     return CreatedResponseDto.create(id, 'Alert created successfully');
   }
 
