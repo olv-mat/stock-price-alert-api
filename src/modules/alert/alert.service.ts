@@ -11,8 +11,8 @@ export class AlertService {
     private readonly alertRepository: Repository<AlertEntity>,
   ) {}
 
-  public findAll(): Promise<AlertEntity[]> {
-    return this.alertRepository.find();
+  public findAll(sub: string): Promise<AlertEntity[]> {
+    return this.alertRepository.find({ where: { user: { id: sub } } });
   }
 
   public findOne(id: string): Promise<AlertEntity> {

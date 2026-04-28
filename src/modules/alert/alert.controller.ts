@@ -31,11 +31,13 @@ export class AlertController {
   constructor(private readonly alertService: AlertService) {}
 
   @Get()
-  @SwaggerOperation('Retrieve all alerts')
+  @SwaggerOperation('Retrieve all alerts for the current user')
   @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerInternalServerError()
-  public async findAll(): Promise<AlertResponseDto[]> {
-    const alertEntities = await this.alertService.findAll();
+  public async findAll(
+    @FromRequest('user') user: AccessTokenPayload,
+  ): Promise<AlertResponseDto[]> {
+    const alertEntities = await this.alertService.findAll(user.sub);
     return AlertResponseDto.fromEntities(alertEntities);
   }
 
