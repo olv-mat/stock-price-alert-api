@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { describe } from 'node:test';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
+import { makeAccessTokenPayload } from 'src/common/test/factories/access-token-payload.factory';
 import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { AlertController } from '../alert.controller';
 import { AlertService } from '../alert.service';
@@ -27,9 +28,11 @@ describe('AlertController', () => {
 
   describe('findAll', () => {
     it('should return a list of mapped alerts', async () => {
-      alertServiceMock.findAll.mockResolvedValue([makeAlertEntity()]);
-      const response = await alertController.findAll();
-      expect(alertServiceMock.findAll).toHaveBeenCalledWith();
+      const user = makeAccessTokenPayload();
+      const alertEntities = [makeAlertEntity()];
+      alertServiceMock.findAll.mockResolvedValue(alertEntities);
+      const response = await alertController.findAll(user);
+      expect(alertServiceMock.findAll).toHaveBeenCalledWith(user.sub);
       expect(Array.isArray(response)).toBe(true);
       expect(response.every((item) => item instanceof AlertResponseDto)).toBe(
         true,
@@ -37,9 +40,11 @@ describe('AlertController', () => {
     });
 
     it('should return a empty array if no alerts found', async () => {
-      alertServiceMock.findAll.mockResolvedValue([]);
-      const response = await alertController.findAll();
-      expect(alertServiceMock.findAll).toHaveBeenCalled();
+      const user = makeAccessTokenPayload();
+      const alertEntities = [];
+      alertServiceMock.findAll.mockResolvedValue(alertEntities);
+      const response = await alertController.findAll(user);
+      expect(alertServiceMock.findAll).toHaveBeenCalledWith(user.sub);
       expect(Array.isArray(response)).toBe(true);
       expect(response).toEqual([]);
     });
@@ -47,49 +52,56 @@ describe('AlertController', () => {
 
   describe('findOne', () => {
     it('should return a mapped alert', async () => {
+      const user = makeAccessTokenPayload();
       const dto = makeUuidDto();
-      alertServiceMock.findOne.mockResolvedValue(makeAlertEntity());
-      const response = await alertController.findOne(dto);
-      expect(alertServiceMock.findOne).toHaveBeenCalledWith(dto.id);
+      const alertEntity = makeAlertEntity();
+      alertServiceMock.findOne.mockResolvedValue(alertEntity);
+      const response = await alertController.findOne(user, dto);
+      expect(alertServiceMock.findOne).toHaveBeenCalledWith(user.sub, dto.id);
       expect(response instanceof AlertResponseDto).toBe(true);
     });
 
     it('should propagate service exceptions', async () => {
+      const user = makeAccessTokenPayload();
       const dto = makeUuidDto();
       alertServiceMock.findOne.mockRejectedValue(new NotFoundException());
-      await expect(alertController.findOne(dto)).rejects.toThrow(
+      await expect(alertController.findOne(user, dto)).rejects.toThrow(
         NotFoundException,
       );
-      expect(alertServiceMock.findOne).toHaveBeenCalledWith(dto.id);
+      expect(alertServiceMock.findOne).toHaveBeenCalledWith(user.sub, dto.id);
     });
   });
 
   describe('create', () => {
     it('should return a created response', async () => {
+      const user = makeAccessTokenPayload();
       const dto = makeCreateAlertDto();
-      alertServiceMock.create.mockResolvedValue(makeAlertEntity());
-      const response = await alertController.create(dto);
-      expect(alertServiceMock.create).toHaveBeenCalledWith(dto);
+      const alertEntity = makeAlertEntity();
+      alertServiceMock.create.mockResolvedValue(alertEntity);
+      const response = await alertController.create(user, dto);
+      expect(alertServiceMock.create).toHaveBeenCalledWith(user.sub, dto);
       expect(response instanceof CreatedResponseDto).toBe(true);
     });
   });
 
   describe('delete', () => {
     it('should return a default response', async () => {
+      const user = makeAccessTokenPayload();
       const dto = makeUuidDto();
       alertServiceMock.delete.mockResolvedValue(undefined);
-      const response = await alertController.delete(dto);
-      expect(alertServiceMock.delete).toHaveBeenCalledWith(dto.id);
+      const response = await alertController.delete(user, dto);
+      expect(alertServiceMock.delete).toHaveBeenCalledWith(user.sub, dto.id);
       expect(response instanceof DefaultResponseDto).toBe(true);
     });
 
     it('should propagate service exceptions', async () => {
+      const user = makeAccessTokenPayload();
       const dto = makeUuidDto();
       alertServiceMock.delete.mockRejectedValue(new NotFoundException());
-      await expect(alertController.delete(dto)).rejects.toThrow(
+      await expect(alertController.delete(user, dto)).rejects.toThrow(
         NotFoundException,
       );
-      expect(alertServiceMock.delete).toHaveBeenCalledWith(dto.id);
+      expect(alertServiceMock.delete).toHaveBeenCalledWith(user.sub, dto.id);
     });
   });
 });
