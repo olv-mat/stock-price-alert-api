@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { validate } from 'class-validator';
 import { makeCreateAlertDto } from './factories/create-alert.dto.factory';
 
@@ -20,7 +19,7 @@ describe('CreateAlertDto', () => {
     });
 
     it('should fail if is not a string', async () => {
-      const dto = makeCreateAlertDto({ ticket: null as any });
+      const dto = makeCreateAlertDto({ ticket: undefined });
       const errors = await validate(dto);
       expect(errors.length).toBe(1);
       const error = errors[0];
@@ -31,7 +30,7 @@ describe('CreateAlertDto', () => {
 
   describe('targetPrice', () => {
     it('should fail if is not a number', async () => {
-      const dto = makeCreateAlertDto({ targetPrice: '38.5' as any });
+      const dto = makeCreateAlertDto({ targetPrice: undefined });
       const errors = await validate(dto);
       expect(errors.length).toBe(1);
       const error = errors[0];
