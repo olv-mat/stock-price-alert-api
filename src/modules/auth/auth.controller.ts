@@ -15,7 +15,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/login')
-  @SwaggerOperation('Authenticate user and return access token')
+  @SwaggerOperation('Authenticate user and return the access token')
   @SwaggerUnauthorized('Invalid credentials')
   @SwaggerInternalServerError()
   public async login(@Body() dto: LoginDto): Promise<AuthResponseDto> {

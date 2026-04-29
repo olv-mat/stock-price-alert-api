@@ -15,8 +15,8 @@ export class AlertService {
     return this.alertRepository.find({ where: { user: { id: sub } } });
   }
 
-  public findOne(id: string): Promise<AlertEntity> {
-    return this.getById(id);
+  public findOne(sub: string, id: string): Promise<AlertEntity> {
+    return this.getById(sub, id);
   }
 
   public async create(sub: string, dto: CreateAlertDto): Promise<AlertEntity> {
@@ -26,13 +26,15 @@ export class AlertService {
     });
   }
 
-  public async delete(id: string): Promise<void> {
-    const alertEntity = await this.getById(id);
+  public async delete(sub: string, id: string): Promise<void> {
+    const alertEntity = await this.getById(sub, id);
     await this.alertRepository.delete(alertEntity.id);
   }
 
-  private async getById(id: string): Promise<AlertEntity> {
-    const alertEntity = await this.alertRepository.findOneBy({ id: id });
+  private async getById(sub: string, id: string): Promise<AlertEntity> {
+    const alertEntity = await this.alertRepository.findOne({
+      where: { id: id, user: { id: sub } },
+    });
     if (!alertEntity) throw new NotFoundException('Alert not found');
     return alertEntity;
   }

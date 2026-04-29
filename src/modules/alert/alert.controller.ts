@@ -42,17 +42,20 @@ export class AlertController {
   }
 
   @Get(':id')
-  @SwaggerOperation('Retrieve a specific alert')
+  @SwaggerOperation('Retrieve a specific alert for the current user')
   @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerNotFound('Alert not found')
   @SwaggerInternalServerError()
-  public async findOne(@Param() { id }: UuidDto): Promise<AlertResponseDto> {
-    const alertEntity = await this.alertService.findOne(id);
+  public async findOne(
+    @FromRequest('user') user: AccessTokenPayload,
+    @Param() { id }: UuidDto,
+  ): Promise<AlertResponseDto> {
+    const alertEntity = await this.alertService.findOne(user.sub, id);
     return AlertResponseDto.fromEntity(alertEntity);
   }
 
   @Post()
-  @SwaggerOperation('Create a new alert')
+  @SwaggerOperation('Create an alert for the current user')
   @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerInternalServerError()
   public async create(
@@ -64,12 +67,15 @@ export class AlertController {
   }
 
   @Delete(':id')
-  @SwaggerOperation('Delete a specific alert')
+  @SwaggerOperation('Delete a specific alert for the current user')
   @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerNotFound('Alert not found')
   @SwaggerInternalServerError()
-  public async delete(@Param() { id }: UuidDto): Promise<DefaultResponseDto> {
-    await this.alertService.delete(id);
+  public async delete(
+    @FromRequest('user') user: AccessTokenPayload,
+    @Param() { id }: UuidDto,
+  ): Promise<DefaultResponseDto> {
+    await this.alertService.delete(user.sub, id);
     return DefaultResponseDto.create('Alert deleted successfully');
   }
 }
