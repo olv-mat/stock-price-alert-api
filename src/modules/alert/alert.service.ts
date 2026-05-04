@@ -5,6 +5,7 @@ import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
 import { CreateAlertDto } from './dtos/create-alert.dto';
 import { AlertEntity } from './entities/alert.entity';
+import { AlertStatus } from './enum/alert-status.enum';
 import { AlertJob } from './types/alert-job.type';
 
 @Injectable()
@@ -35,6 +36,10 @@ export class AlertService {
   public async delete(sub: string, id: string): Promise<void> {
     const alertEntity = await this.getById(sub, id);
     await this.alertRepository.delete(alertEntity.id);
+  }
+
+  public async complete(id: string): Promise<void> {
+    await this.alertRepository.update(id, { status: AlertStatus.COMPLETED });
   }
 
   private async getById(sub: string, id: string): Promise<AlertEntity> {
