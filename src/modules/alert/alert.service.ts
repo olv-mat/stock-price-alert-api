@@ -29,7 +29,7 @@ export class AlertService {
       ...dto,
       user: { id: sub },
     });
-    await this.addToQueue(alertEntity);
+    await this.addToQueue(sub, alertEntity.id);
     return alertEntity;
   }
 
@@ -50,13 +50,12 @@ export class AlertService {
     return alertEntity;
   }
 
-  private async addToQueue(entity: AlertEntity): Promise<void> {
+  private async addToQueue(sub: string, id: string): Promise<void> {
     await this.queue.add(
       'job',
       {
-        id: entity.id,
-        ticket: entity.ticket,
-        targetPrice: entity.targetPrice,
+        owner: sub,
+        reference: id,
       },
       {
         repeat: {

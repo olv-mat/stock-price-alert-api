@@ -1,5 +1,4 @@
 export type AlertJob = {
-  id: string;
-  ticket: string;
-  targetPrice: number;
+  owner: string;
+  reference: string;
 };
