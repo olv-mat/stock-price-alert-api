@@ -8,7 +8,7 @@ export class AlertEntity extends AbstractEntity {
   @Column({ length: 20, nullable: false })
   public ticket!: string;
 
-  @Column({ name: 'target_price', nullable: false })
+  @Column({ type: 'float', name: 'target_price', nullable: false })
   public targetPrice!: number;
 
   @Column({ type: 'enum', enum: AlertStatus, default: AlertStatus.PENDING })

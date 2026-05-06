@@ -4,6 +4,7 @@ import { Job, Queue } from 'bullmq';
 import { EmailService } from 'src/common/modules/email/email.service';
 import { StockService } from 'src/common/modules/stock/stock.service';
 import { AlertService } from './alert.service';
+import { AlertNotFoundException } from './exceptions/alert-not-found.exception';
 import { AlertJob } from './types/alert-job.type';
 
 @Processor('alerts')
@@ -12,36 +13,41 @@ export class AlertProcessor extends WorkerHost {
 
   constructor(
     @InjectQueue('alerts') private readonly queue: Queue,
+    private readonly alertService: AlertService,
     private readonly stockService: StockService,
     private readonly emailService: EmailService,
-    private readonly alertService: AlertService,
   ) {
     super();
   }
 
   public async process(job: Job<AlertJob>): Promise<any> {
     try {
-      this.logger.debug('Starting alert processing...');
+      this.logger.log('Starting alert processing...');
       const { owner, reference } = job.data;
-      const alertEntity = await this.alertService.findOne(owner, reference);
-      this.logger.debug(`Looking at ${alertEntity.ticket}...`);
-      const price = await this.stockService.getCurrentPrice(alertEntity.ticket);
-      this.logger.debug(
-        `Price now is ${price}, target is ${alertEntity.targetPrice}`,
+      const { id, ticket, targetPrice } = await this.alertService.findOne(
+        owner,
+        reference,
       );
-      if (price <= alertEntity.targetPrice) {
-        this.logger.debug(`Target hit for ${alertEntity.ticket}`);
-        await this.alertService.complete(alertEntity.id);
-        await this.remove(job);
-        this.logger.debug(`All done, alert ${reference} finished`);
-      } else {
-        this.logger.warn(
-          `Not yet, ${alertEntity.ticket} is still above target`,
-        );
+
+      this.logger.log(`Fetching price for ${ticket}...`);
+      const price = await this.stockService.getCurrentPrice(ticket);
+      this.logger.log(`Price now is ${price}, target is ${targetPrice}`);
+
+      if (price > targetPrice) {
+        this.logger.warn(`Not yet, price is still above target`);
+        return;
       }
+
+      this.logger.log(`Target hit for ${id}`);
+      await this.alertService.complete(id);
+      await this.remove(job);
+      this.logger.log(`All done, alert ${id} finished`);
     } catch (error) {
-      if (error instanceof Error) {
-        this.logger.error(error.message);
+      if (error instanceof AlertNotFoundException) {
+        await this.remove(job);
+        this.logger.error(
+          'Alert not found, job removed and processing finished',
+        );
       }
     }
   }

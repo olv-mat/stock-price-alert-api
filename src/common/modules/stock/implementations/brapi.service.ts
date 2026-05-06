@@ -1,5 +1,6 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import Brapi from 'brapi';
+import { PriceNotFoundException } from '../exceptions/price-not-found.exception';
 import { StockService } from '../stock.service';
 import { BRAPI_CLIENT } from './brapi.provider';
 
@@ -11,7 +12,7 @@ export class BrapiServiceImplementation implements StockService {
     const quote = await this.brapi.quote.retrieve(ticket);
     const price = quote?.results?.[0]?.regularMarketPrice;
     if (price === undefined || price === null) {
-      throw new NotFoundException(`No price found for ${ticket}`);
+      throw new PriceNotFoundException();
     }
     return price;
   }
