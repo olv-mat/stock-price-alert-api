@@ -22,34 +22,44 @@ export class AlertProcessor extends WorkerHost {
 
   public async process(job: Job<AlertJob>): Promise<any> {
     try {
-      this.logger.log('Starting alert processing...');
+      this.logger.debug('Starting alert processing...');
       const { owner, reference } = job.data;
       const { id, ticket, targetPrice } = await this.alertService.findOne(
         owner,
         reference,
       );
 
-      this.logger.log(`Fetching price for ${ticket}...`);
+      this.logger.debug(`Fetching price for ${ticket}...`);
       const price = await this.stockService.getCurrentPrice(ticket);
-      this.logger.log(`Price now is ${price}, target is ${targetPrice}`);
-
-      if (price > targetPrice) {
-        this.logger.warn(`Not yet, price is still above target`);
-        return;
+      const hit = this.assertTargetHit(price, targetPrice);
+      if (hit) {
+        await this.alertService.complete(id);
+        await this.remove(job);
+        this.logger.debug(`All done, alert finished`);
       }
-
-      this.logger.log(`Target hit for ${id}`);
-      await this.alertService.complete(id);
-      await this.remove(job);
-      this.logger.log(`All done, alert ${id} finished`);
     } catch (error) {
       if (error instanceof AlertNotFoundException) {
         await this.remove(job);
-        this.logger.error(
-          'Alert not found, job removed and processing finished',
-        );
+        this.logger.error('Alert not found, job removed');
       }
     }
+  }
+
+  private assertTargetHit(
+    price: number | undefined,
+    targetPrice: number,
+  ): boolean {
+    if (!price) {
+      this.logger.warn('Unable to retrieve the price at the moment');
+      return false;
+    }
+    this.logger.debug(`Price now is ${price}, target is ${targetPrice}`);
+    if (price > targetPrice) {
+      this.logger.warn(`Price is still above target`);
+      return false;
+    }
+    this.logger.log(`Target hit`);
+    return true;
   }
 
   private async remove(job: Job<AlertJob>): Promise<void> {
