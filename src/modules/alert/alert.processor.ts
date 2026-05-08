@@ -1,10 +1,9 @@
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { Logger, NotFoundException } from '@nestjs/common';
 import { Job, Queue } from 'bullmq';
 import { EmailService } from 'src/common/modules/email/email.service';
 import { StockService } from 'src/common/modules/stock/stock.service';
 import { AlertService } from './alert.service';
-import { AlertNotFoundException } from './exceptions/alert-not-found.exception';
 import { AlertJob } from './types/alert-job.type';
 
 @Processor('alerts')
@@ -33,12 +32,17 @@ export class AlertProcessor extends WorkerHost {
       const price = await this.stockService.getCurrentPrice(ticket);
       const hit = this.assertTargetHit(price, targetPrice);
       if (hit) {
+        this.logger.debug('Sending notification...');
+        await this.emailService.send(
+          'Stock Alert Triggered',
+          `${ticket} has reached your configured target price of ${targetPrice}`,
+        );
         await this.alertService.complete(id);
         await this.remove(job);
         this.logger.debug(`All done, alert finished`);
       }
     } catch (error) {
-      if (error instanceof AlertNotFoundException) {
+      if (error instanceof NotFoundException) {
         await this.remove(job);
         this.logger.error('Alert not found, job removed');
       }
