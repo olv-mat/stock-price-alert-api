@@ -1,17 +1,21 @@
+import { getQueueToken } from '@nestjs/bullmq';
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Queue } from 'bullmq';
 import { makeAccessTokenPayload } from 'src/common/test/factories/access-token-payload.factory';
 import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { Repository } from 'typeorm';
 import { AlertService } from '../alert.service';
 import { AlertEntity } from '../entities/alert.entity';
+import { AlertJob } from '../types/alert-job.type';
 import { makeAlertEntity } from './factories/alert.entity.factory';
 import { makeCreateAlertDto } from './factories/create-alert.dto.factory';
 
 type AlertServiceContext = {
   alertService: AlertService;
   alertRepositoryMock: Repository<AlertEntity>;
+  queueMock: Queue<AlertJob>;
 };
 
 describe('AlertService', () => {
@@ -30,17 +34,24 @@ describe('AlertService', () => {
             delete: jest.fn(),
           },
         },
+        {
+          provide: getQueueToken('alerts'),
+          useValue: {
+            add: jest.fn(),
+          },
+        },
       ],
     }).compile();
     context = {
       alertService: module.get(AlertService),
       alertRepositoryMock: module.get(getRepositoryToken(AlertEntity)),
+      queueMock: module.get(getQueueToken('alerts')),
     };
   });
 
   describe('findAll', () => {
     it('should return a list of alerts', async () => {
-      const { alertRepositoryMock, alertService } = context;
+      const { alertService, alertRepositoryMock } = context;
       const { sub } = makeAccessTokenPayload();
       const alertEntities = [makeAlertEntity()];
       const spy = jest
@@ -54,7 +65,7 @@ describe('AlertService', () => {
 
   describe('findOne', () => {
     it('should return a alert', async () => {
-      const { alertRepositoryMock, alertService } = context;
+      const { alertService, alertRepositoryMock } = context;
       const { sub } = makeAccessTokenPayload();
       const { id } = makeUuidDto();
       const alertEntity = makeAlertEntity();
@@ -69,7 +80,7 @@ describe('AlertService', () => {
     });
 
     it('should throw a not found excpetion when alert does not exist', async () => {
-      const { alertRepositoryMock, alertService } = context;
+      const { alertService, alertRepositoryMock } = context;
       const { sub } = makeAccessTokenPayload();
       const { id } = makeUuidDto();
       const spy = jest
@@ -86,25 +97,29 @@ describe('AlertService', () => {
 
   describe('create', () => {
     it('should create a new alert', async () => {
-      const { alertRepositoryMock, alertService } = context;
+      const { alertService, alertRepositoryMock, queueMock } = context;
       const { sub } = makeAccessTokenPayload();
       const dto = makeCreateAlertDto();
       const alertEntity = makeAlertEntity();
-      const spy = jest
-        .spyOn(alertRepositoryMock, 'save')
-        .mockResolvedValue(alertEntity);
+      const sipes = {
+        save: jest
+          .spyOn(alertRepositoryMock, 'save')
+          .mockResolvedValue(alertEntity),
+        add: jest.spyOn(queueMock, 'add'),
+      };
       const response = await alertService.create(sub, dto);
-      expect(spy).toHaveBeenCalledWith({
+      expect(sipes.save).toHaveBeenCalledWith({
         ...dto,
         user: { id: sub },
       });
+      expect(sipes.add).toHaveBeenCalled();
       expect(response).toEqual(alertEntity);
     });
   });
 
   describe('delete', () => {
     it('should delete a alert', async () => {
-      const { alertRepositoryMock, alertService } = context;
+      const { alertService, alertRepositoryMock } = context;
       const { sub } = makeAccessTokenPayload();
       const { id } = makeUuidDto();
       const alertEntity = makeAlertEntity();
@@ -122,7 +137,7 @@ describe('AlertService', () => {
     });
 
     it('should throw a not found exception when alert does not exist', async () => {
-      const { alertRepositoryMock, alertService } = context;
+      const { alertService, alertRepositoryMock } = context;
       const { sub } = makeAccessTokenPayload();
       const { id } = makeUuidDto({
         id: '27d00cd0-31c8-4630-9e4f-e2f890689a73',
