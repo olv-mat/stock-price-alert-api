@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
 import { CreateAlertDto } from './dtos/create-alert.dto';
+import { UpdateAlertDto } from './dtos/update-alert.dto';
 import { AlertEntity } from './entities/alert.entity';
 import { AlertStatus } from './enum/alert-status.enum';
 import { AlertJob } from './types/alert-job.type';
@@ -31,6 +32,15 @@ export class AlertService {
     });
     await this.addToQueue(sub, alertEntity.id);
     return alertEntity;
+  }
+
+  public async update(
+    sub: string,
+    id: string,
+    dto: UpdateAlertDto,
+  ): Promise<void> {
+    const alertEntity = await this.getById(sub, id);
+    await this.alertRepository.update(alertEntity.id, dto);
   }
 
   public async delete(sub: string, id: string): Promise<void> {

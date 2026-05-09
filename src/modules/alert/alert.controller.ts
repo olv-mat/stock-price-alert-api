@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -23,6 +24,7 @@ import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AlertService } from './alert.service';
 import { AlertResponseDto } from './dtos/alert-response.dto';
 import { CreateAlertDto } from './dtos/create-alert.dto';
+import { UpdateAlertDto } from './dtos/update-alert.dto';
 
 @Controller('alerts')
 @UseGuards(JwtGuard)
@@ -64,6 +66,16 @@ export class AlertController {
   ): Promise<CreatedResponseDto> {
     const { id } = await this.alertService.create(user.sub, dto);
     return CreatedResponseDto.create(id, 'Alert created successfully');
+  }
+
+  @Patch(':id')
+  public async update(
+    @FromRequest('user') user: AccessTokenPayload,
+    @Param() { id }: UuidDto,
+    @Body() dto: UpdateAlertDto,
+  ): Promise<DefaultResponseDto> {
+    await this.alertService.update(user.sub, id, dto);
+    return DefaultResponseDto.create('Alert updated successfully');
   }
 
   @Delete(':id')
