@@ -69,6 +69,10 @@ export class AlertController {
   }
 
   @Patch(':id')
+  @SwaggerOperation('Update a specific alert for the current user')
+  @SwaggerUnauthorized('Invalid, expired, or missing token')
+  @SwaggerNotFound('Alert not found')
+  @SwaggerInternalServerError()
   public async update(
     @FromRequest('user') user: AccessTokenPayload,
     @Param() { id }: UuidDto,
