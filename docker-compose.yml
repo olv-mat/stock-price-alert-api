@@ -1,0 +1,10 @@
+name: stock-price-alert
+services:
+  app:
+    build: .
+    depends_on:
+      - redis
+    ports:
+      - "3000:3000"
+  redis:
+    image: redis
