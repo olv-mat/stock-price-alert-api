@@ -9,6 +9,7 @@ import { AlertService } from '../alert.service';
 import { AlertResponseDto } from '../dtos/alert-response.dto';
 import { makeAlertEntity } from './factories/alert.entity.factory';
 import { makeCreateAlertDto } from './factories/create-alert.dto.factory';
+import { makeUpdateAlertDto } from './factories/update-alert.dto.factory';
 
 describe('AlertController', () => {
   let alertController: AlertController;
@@ -16,6 +17,7 @@ describe('AlertController', () => {
     findAll: jest.fn(),
     findOne: jest.fn(),
     create: jest.fn(),
+    update: jest.fn(),
     delete: jest.fn(),
   };
 
@@ -39,7 +41,7 @@ describe('AlertController', () => {
       );
     });
 
-    it('should return a empty array if no alerts found', async () => {
+    it('should return an empty array if no alerts found', async () => {
       const user = makeAccessTokenPayload();
       const alertEntities = [];
       alertServiceMock.findAll.mockResolvedValue(alertEntities);
@@ -81,6 +83,41 @@ describe('AlertController', () => {
       const response = await alertController.create(user, dto);
       expect(alertServiceMock.create).toHaveBeenCalledWith(user.sub, dto);
       expect(response instanceof CreatedResponseDto).toBe(true);
+    });
+  });
+
+  describe('update', () => {
+    it('it should return a default response', async () => {
+      const user = makeAccessTokenPayload();
+      const uuidDto = makeUuidDto();
+      const updateAlertDto = makeUpdateAlertDto();
+      alertServiceMock.update.mockResolvedValue(undefined);
+      const response = await alertController.update(
+        user,
+        uuidDto,
+        updateAlertDto,
+      );
+      expect(alertServiceMock.update).toHaveBeenCalledWith(
+        user.sub,
+        uuidDto.id,
+        updateAlertDto,
+      );
+      expect(response instanceof DefaultResponseDto).toBe(true);
+    });
+
+    it('should propagate service exceptions', async () => {
+      const user = makeAccessTokenPayload();
+      const uuidDto = makeUuidDto();
+      const updateAlertDto = makeUpdateAlertDto();
+      alertServiceMock.update.mockRejectedValue(new NotFoundException());
+      await expect(
+        alertController.update(user, uuidDto, updateAlertDto),
+      ).rejects.toThrow(NotFoundException);
+      expect(alertServiceMock.update).toHaveBeenCalledWith(
+        user.sub,
+        uuidDto.id,
+        updateAlertDto,
+      );
     });
   });
 
