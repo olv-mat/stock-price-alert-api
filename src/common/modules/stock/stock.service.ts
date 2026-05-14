@@ -1,3 +1,3 @@
 export abstract class StockService {
-  public abstract getCurrentPrice(ticket: string): Promise<number | undefined>;
+  public abstract getCurrentPrice(ticker: string): Promise<number | undefined>;
 }

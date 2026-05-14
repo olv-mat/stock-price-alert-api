@@ -23,19 +23,19 @@ export class AlertProcessor extends WorkerHost {
     try {
       this.logger.debug('Starting alert processing...');
       const { owner, reference } = job.data;
-      const { id, ticket, targetPrice } = await this.alertService.findOne(
+      const { id, ticker, targetPrice } = await this.alertService.findOne(
         owner,
         reference,
       );
 
-      this.logger.debug(`Fetching price for ${ticket}...`);
-      const price = await this.stockService.getCurrentPrice(ticket);
+      this.logger.debug(`Fetching price for ${ticker}...`);
+      const price = await this.stockService.getCurrentPrice(ticker);
       const hit = this.assertTargetHit(price, targetPrice);
       if (hit) {
         this.logger.debug('Sending notification...');
         await this.emailService.send(
           'Stock Alert Triggered',
-          `${ticket} has reached your configured target price of ${targetPrice}`,
+          `${ticker} has reached your configured target price of ${targetPrice}`,
         );
         await this.alertService.complete(id);
         await this.remove(job);

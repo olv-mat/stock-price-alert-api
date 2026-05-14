@@ -3,20 +3,20 @@ import { AlertEntity } from '../entities/alert.entity';
 
 type AlertResponseProperties = {
   id: string;
-  ticket: string;
+  ticker: string;
   targetPrice: number;
   status: AlertStatus;
 };
 
 export class AlertResponseDto {
   public readonly id: string;
-  public readonly ticket: string;
+  public readonly ticker: string;
   public readonly targetPrice: number;
   public readonly status: AlertStatus;
 
   private constructor(properties: AlertResponseProperties) {
     this.id = properties.id;
-    this.ticket = properties.ticket;
+    this.ticker = properties.ticker;
     this.targetPrice = properties.targetPrice;
     this.status = properties.status;
   }
@@ -28,7 +28,7 @@ export class AlertResponseDto {
   public static fromEntity(entity: AlertEntity): AlertResponseDto {
     return new AlertResponseDto({
       id: entity.id,
-      ticket: entity.ticket,
+      ticker: entity.ticker,
       targetPrice: entity.targetPrice,
       status: entity.status,
     });

@@ -7,8 +7,8 @@ import { BRAPI_CLIENT } from './brapi.provider';
 export class BrapiServiceImplementation implements StockService {
   constructor(@Inject(BRAPI_CLIENT) private readonly brapi: Brapi) {}
 
-  public async getCurrentPrice(ticket: string): Promise<number | undefined> {
-    const quote = await this.brapi.quote.retrieve(ticket);
+  public async getCurrentPrice(ticker: string): Promise<number | undefined> {
+    const quote = await this.brapi.quote.retrieve(ticker);
     const price = quote?.results?.[0]?.regularMarketPrice;
     if (price !== undefined && price !== null) {
       return price;

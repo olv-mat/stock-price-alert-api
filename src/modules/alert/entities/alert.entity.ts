@@ -6,7 +6,7 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 @Entity({ name: 'alerts' })
 export class AlertEntity extends AbstractEntity {
   @Column({ length: 20, nullable: false })
-  public ticket!: string;
+  public ticker!: string;
 
   @Column({ type: 'float', name: 'target_price', nullable: false })
   public targetPrice!: number;

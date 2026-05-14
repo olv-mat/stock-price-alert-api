@@ -8,22 +8,22 @@ describe('CreateAlertDto', () => {
     expect(errors.length).toBe(0);
   });
 
-  describe('ticket', () => {
+  describe('ticker', () => {
     it('should fail if is empty', async () => {
-      const dto = makeCreateAlertDto({ ticket: '' });
+      const dto = makeCreateAlertDto({ ticker: '' });
       const errors = await validate(dto);
       expect(errors.length).toBe(1);
       const error = errors[0];
-      expect(error.property).toBe('ticket');
+      expect(error.property).toBe('ticker');
       expect(error.constraints).toHaveProperty('isNotEmpty');
     });
 
     it('should fail if is not a string', async () => {
-      const dto = makeCreateAlertDto({ ticket: undefined });
+      const dto = makeCreateAlertDto({ ticker: undefined });
       const errors = await validate(dto);
       expect(errors.length).toBe(1);
       const error = errors[0];
-      expect(error.property).toBe('ticket');
+      expect(error.property).toBe('ticker');
       expect(error.constraints).toHaveProperty('isString');
     });
   });
