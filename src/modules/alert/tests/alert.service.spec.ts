@@ -11,6 +11,7 @@ import { AlertEntity } from '../entities/alert.entity';
 import { AlertJob } from '../types/alert-job.type';
 import { makeAlertEntity } from './factories/alert.entity.factory';
 import { makeCreateAlertDto } from './factories/create-alert.dto.factory';
+import { makeUpdateAlertDto } from './factories/update-alert.dto.factory';
 
 type AlertServiceContext = {
   alertService: AlertService;
@@ -31,6 +32,7 @@ describe('AlertService', () => {
             find: jest.fn(),
             findOne: jest.fn(),
             save: jest.fn(),
+            update: jest.fn(),
             delete: jest.fn(),
           },
         },
@@ -64,7 +66,7 @@ describe('AlertService', () => {
   });
 
   describe('findOne', () => {
-    it('should return a alert', async () => {
+    it('should return an alert', async () => {
       const { alertService, alertRepositoryMock } = context;
       const { sub } = makeAccessTokenPayload();
       const { id } = makeUuidDto();
@@ -96,7 +98,7 @@ describe('AlertService', () => {
   });
 
   describe('create', () => {
-    it('should create a new alert', async () => {
+    it('should create a new alert and add it to the queue', async () => {
       const { alertService, alertRepositoryMock, queueMock } = context;
       const { sub } = makeAccessTokenPayload();
       const dto = makeCreateAlertDto();
@@ -117,8 +119,49 @@ describe('AlertService', () => {
     });
   });
 
+  describe('update', () => {
+    it('should update an alert', async () => {
+      const { alertService, alertRepositoryMock } = context;
+      const { sub } = makeAccessTokenPayload();
+      const { id } = makeUuidDto();
+      const dto = makeUpdateAlertDto();
+      const alertEntity = makeAlertEntity();
+      const spies = {
+        findOne: jest
+          .spyOn(alertRepositoryMock, 'findOne')
+          .mockResolvedValue(alertEntity),
+        update: jest.spyOn(alertRepositoryMock, 'update'),
+      };
+      await alertService.update(sub, id, dto);
+      expect(spies.findOne).toHaveBeenCalledWith({
+        where: { id: id, user: { id: sub } },
+      });
+      expect(spies.update).toHaveBeenCalledWith(alertEntity.id, dto);
+    });
+
+    it('should throw a not found exception when alert does not exist', async () => {
+      const { alertService, alertRepositoryMock } = context;
+      const { sub } = makeAccessTokenPayload();
+      const { id } = makeUuidDto();
+      const dto = makeUpdateAlertDto();
+      const spies = {
+        findOne: jest
+          .spyOn(alertRepositoryMock, 'findOne')
+          .mockResolvedValue(null),
+        update: jest.spyOn(alertRepositoryMock, 'update'),
+      };
+      await expect(alertService.update(sub, id, dto)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(spies.findOne).toHaveBeenCalledWith({
+        where: { id: id, user: { id: sub } },
+      });
+      expect(spies.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('delete', () => {
-    it('should delete a alert', async () => {
+    it('should delete an alert', async () => {
       const { alertService, alertRepositoryMock } = context;
       const { sub } = makeAccessTokenPayload();
       const { id } = makeUuidDto();
@@ -142,12 +185,19 @@ describe('AlertService', () => {
       const { id } = makeUuidDto({
         id: '27d00cd0-31c8-4630-9e4f-e2f890689a73',
       });
-      const spy = jest.spyOn(alertRepositoryMock, 'delete');
-      jest.spyOn(alertRepositoryMock, 'findOne').mockResolvedValue(null);
+      const spies = {
+        findOne: jest
+          .spyOn(alertRepositoryMock, 'findOne')
+          .mockResolvedValue(null),
+        delete: jest.spyOn(alertRepositoryMock, 'delete'),
+      };
       await expect(alertService.delete(sub, id)).rejects.toThrow(
         NotFoundException,
       );
-      expect(spy).not.toHaveBeenCalled();
+      expect(spies.findOne).toHaveBeenCalledWith({
+        where: { id: id, user: { id: sub } },
+      });
+      expect(spies.delete).not.toHaveBeenCalled();
     });
   });
 });
