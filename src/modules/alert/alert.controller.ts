@@ -6,11 +6,13 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { FromRequest } from 'src/common/decorators/from-request.decorator';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
 import { AccessTokenPayload } from 'src/common/modules/credential/contracts/access-token-payload';
 import {
@@ -22,6 +24,7 @@ import {
 } from 'src/common/swagger/decorators.swagger';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AlertService } from './alert.service';
+import { AlertFiltersDto } from './dtos/alert-filters.dto';
 import { AlertResponseDto } from './dtos/alert-response.dto';
 import { CreateAlertDto } from './dtos/create-alert.dto';
 import { UpdateAlertDto } from './dtos/update-alert.dto';
@@ -38,9 +41,18 @@ export class AlertController {
   @SwaggerInternalServerError()
   public async findAll(
     @FromRequest('user') user: AccessTokenPayload,
-  ): Promise<AlertResponseDto[]> {
-    const alertEntities = await this.alertService.findAll(user.sub);
-    return AlertResponseDto.fromEntities(alertEntities);
+    @Query() filters: AlertFiltersDto,
+  ): Promise<PaginatedResponseDto> {
+    const [alertEntities, total] = await this.alertService.findAll(
+      user.sub,
+      filters,
+    );
+    return PaginatedResponseDto.create({
+      data: AlertResponseDto.fromEntities(alertEntities),
+      total: total,
+      page: filters.page,
+      limit: filters.limit,
+    });
   }
 
   @Get(':id')

@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
+import { AlertFiltersDto } from './dtos/alert-filters.dto';
 import { CreateAlertDto } from './dtos/create-alert.dto';
 import { UpdateAlertDto } from './dtos/update-alert.dto';
 import { AlertEntity } from './entities/alert.entity';
@@ -17,8 +18,11 @@ export class AlertService {
     @InjectQueue('alerts') private readonly queue: Queue<AlertJob>,
   ) {}
 
-  public findAll(sub: string): Promise<AlertEntity[]> {
-    return this.alertRepository.find({ where: { user: { id: sub } } });
+  public findAll(
+    sub: string,
+    filters: AlertFiltersDto,
+  ): Promise<[AlertEntity[], number]> {
+    return this.findWithFilters(sub, filters);
   }
 
   public findOne(sub: string, id: string): Promise<AlertEntity> {
@@ -50,6 +54,26 @@ export class AlertService {
 
   public async complete(id: string): Promise<void> {
     await this.alertRepository.update(id, { status: AlertStatus.COMPLETED });
+  }
+
+  private async findWithFilters(
+    sub: string,
+    filters: AlertFiltersDto,
+  ): Promise<[AlertEntity[], number]> {
+    const { status, ticker, page, limit } = filters;
+    const skip = (page - 1) * limit;
+    return this.alertRepository.findAndCount({
+      where: {
+        ...(status && { status: status }),
+        ...(ticker && { ticker: ticker }),
+        user: { id: sub },
+      },
+      skip,
+      take: limit,
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
 
   private async getById(sub: string, id: string): Promise<AlertEntity> {
