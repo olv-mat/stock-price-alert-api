@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { AlertService } from '../alert.service';
 import { AlertEntity } from '../entities/alert.entity';
 import { AlertJob } from '../types/alert-job.type';
+import { makeAlertFiltersDto } from './factories/alert-filters.dto.factory';
 import { makeAlertEntity } from './factories/alert.entity.factory';
 import { makeCreateAlertDto } from './factories/create-alert.dto.factory';
 import { makeUpdateAlertDto } from './factories/update-alert.dto.factory';
@@ -29,7 +30,7 @@ describe('AlertService', () => {
         {
           provide: getRepositoryToken(AlertEntity),
           useValue: {
-            find: jest.fn(),
+            findAndCount: jest.fn(),
             findOne: jest.fn(),
             save: jest.fn(),
             update: jest.fn(),
@@ -52,16 +53,31 @@ describe('AlertService', () => {
   });
 
   describe('findAll', () => {
-    it('should return a list of alerts', async () => {
+    it('should return a list and count of alerts', async () => {
       const { alertService, alertRepositoryMock } = context;
       const { sub } = makeAccessTokenPayload();
-      const alertEntities = [makeAlertEntity()];
+      const filters = makeAlertFiltersDto();
+      const alertEntitiesAndCount: [AlertEntity[], number] = [
+        [makeAlertEntity()],
+        1,
+      ];
       const spy = jest
-        .spyOn(alertRepositoryMock, 'find')
-        .mockResolvedValue(alertEntities);
-      const response = await alertService.findAll(sub);
-      expect(spy).toHaveBeenCalledWith({ where: { user: { id: sub } } });
-      expect(response).toEqual(alertEntities);
+        .spyOn(alertRepositoryMock, 'findAndCount')
+        .mockResolvedValue(alertEntitiesAndCount);
+      const response = await alertService.findAll(sub, filters);
+      expect(spy).toHaveBeenCalledWith({
+        where: {
+          status: filters.status,
+          ticker: filters.ticker,
+          user: { id: sub },
+        },
+        skip: 0,
+        take: filters.limit,
+        order: {
+          createdAt: 'DESC',
+        },
+      });
+      expect(response).toEqual(alertEntitiesAndCount);
     });
   });
 
