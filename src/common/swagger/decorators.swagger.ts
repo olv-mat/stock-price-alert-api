@@ -4,6 +4,7 @@ import {
   ApiConflictResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -14,6 +15,12 @@ export const SwaggerOperation = (message: string) => {
 
 export const SwaggerBearerAuth = () => {
   return ApiBearerAuth();
+};
+
+export const SwaggerCustomResponse = (schema: object) => {
+  return ApiOkResponse({
+    schema: schema,
+  });
 };
 
 export const SwaggerBadRequest = (message: string) => {

@@ -17,6 +17,7 @@ import { UuidDto } from 'src/common/dtos/uuid.dto';
 import { AccessTokenPayload } from 'src/common/modules/credential/contracts/access-token-payload';
 import {
   SwaggerBearerAuth,
+  SwaggerCustomResponse,
   SwaggerInternalServerError,
   SwaggerNotFound,
   SwaggerOperation,
@@ -28,6 +29,7 @@ import { AlertFiltersDto } from './dtos/alert-filters.dto';
 import { AlertResponseDto } from './dtos/alert-response.dto';
 import { CreateAlertDto } from './dtos/create-alert.dto';
 import { UpdateAlertDto } from './dtos/update-alert.dto';
+import { AlertStatus } from './enum/alert-status.enum';
 
 @Controller('alerts')
 @UseGuards(JwtGuard)
@@ -36,7 +38,56 @@ export class AlertController {
   constructor(private readonly alertService: AlertService) {}
 
   @Get()
-  @SwaggerOperation('Retrieve all alerts for the current user')
+  @SwaggerOperation(
+    'Retrieve all alerts for the current user, with pagination and filters',
+  )
+  @SwaggerCustomResponse({
+    type: 'object',
+    properties: {
+      data: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+            },
+            ticker: {
+              type: 'string',
+            },
+            targetPrice: {
+              type: 'number',
+            },
+            status: {
+              type: AlertStatus,
+              example: AlertStatus.PENDING,
+            },
+          },
+        },
+      },
+      meta: {
+        type: 'object',
+        properties: {
+          totalItems: {
+            type: 'number',
+            example: 1,
+          },
+          totalPages: {
+            type: 'number',
+            example: 1,
+          },
+          currentPage: {
+            type: 'number',
+            example: 1,
+          },
+          itemsPerPage: {
+            type: 'number',
+            example: 10,
+          },
+        },
+      },
+    },
+  })
   @SwaggerUnauthorized('Invalid, expired, or missing token')
   @SwaggerInternalServerError()
   public async findAll(
