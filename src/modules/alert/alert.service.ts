@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bullmq';
 import { Repository } from 'typeorm';
@@ -8,6 +8,7 @@ import { CreateAlertDto } from './dtos/create-alert.dto';
 import { UpdateAlertDto } from './dtos/update-alert.dto';
 import { AlertEntity } from './entities/alert.entity';
 import { AlertStatus } from './enum/alert-status.enum';
+import { AlertNotFoundException } from './exceptions/alert-not-found.exception';
 import { AlertJob } from './types/alert-job.type';
 
 @Injectable()
@@ -52,8 +53,8 @@ export class AlertService {
     await this.alertRepository.delete(alertEntity.id);
   }
 
-  public async complete(id: string): Promise<void> {
-    await this.alertRepository.update(id, { status: AlertStatus.COMPLETED });
+  public async updateStatus(id: string, status: AlertStatus): Promise<void> {
+    await this.alertRepository.update(id, { status: status });
   }
 
   private async findWithFilters(
@@ -80,7 +81,7 @@ export class AlertService {
     const alertEntity = await this.alertRepository.findOne({
       where: { id: id, user: { id: sub } },
     });
-    if (!alertEntity) throw new NotFoundException('Alert not found');
+    if (!alertEntity) throw new AlertNotFoundException();
     return alertEntity;
   }
 

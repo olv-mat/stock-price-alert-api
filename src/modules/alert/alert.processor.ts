@@ -1,9 +1,12 @@
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger, NotFoundException } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { Job, Queue } from 'bullmq';
 import { EmailService } from 'src/common/modules/email/email.service';
+import { StockNotFoundException } from 'src/common/modules/stock/exceptions/stock-not-found.exception';
 import { StockService } from 'src/common/modules/stock/stock.service';
 import { AlertService } from './alert.service';
+import { AlertStatus } from './enum/alert-status.enum';
+import { AlertNotFoundException } from './exceptions/alert-not-found.exception';
 import { AlertJob } from './types/alert-job.type';
 
 @Processor('alerts')
@@ -20,14 +23,14 @@ export class AlertProcessor extends WorkerHost {
   }
 
   public async process(job: Job<AlertJob>): Promise<any> {
-    try {
-      this.logger.debug('Starting alert processing...');
-      const { owner, reference } = job.data;
-      const { id, ticker, targetPrice } = await this.alertService.findOne(
-        owner,
-        reference,
-      );
+    this.logger.debug('Starting alert processing...');
+    const { owner, reference } = job.data;
+    const { id, ticker, targetPrice } = await this.alertService.findOne(
+      owner,
+      reference,
+    );
 
+    try {
       this.logger.debug(`Fetching price for ${ticker}...`);
       const price = await this.stockService.getCurrentPrice(ticker);
       const hit = this.assertTargetHit(price, targetPrice);
@@ -37,14 +40,24 @@ export class AlertProcessor extends WorkerHost {
           'Stock Alert Triggered',
           `${ticker} has reached your configured target price of ${targetPrice}`,
         );
-        await this.alertService.complete(id);
+        await this.alertService.updateStatus(id, AlertStatus.COMPLETED);
         await this.remove(job);
         this.logger.debug(`All done, alert finished`);
       }
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (
+        error instanceof AlertNotFoundException ||
+        error instanceof StockNotFoundException
+      ) {
         await this.remove(job);
-        this.logger.error('Alert not found, job removed');
+      }
+
+      if (error instanceof StockNotFoundException) {
+        await this.alertService.updateStatus(id, AlertStatus.FAILED);
+      }
+
+      if (error instanceof Error) {
+        this.logger.error(error.message);
       }
     }
   }
