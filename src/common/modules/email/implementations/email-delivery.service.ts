@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 import { EmailService } from '../email.service';
+import { EmailNotificationException } from '../exceptions/email-notification.exception';
 
 interface EmailDeliveryResponse {
   success: boolean;
@@ -17,19 +18,25 @@ export class EmailDeliveryImplementation implements EmailService {
   ) {}
 
   public async send(subject: string, text: string): Promise<void> {
-    const url = this.configService.getOrThrow<string>('EMAIL_DELIVERY_URL');
-    const token = this.configService.getOrThrow<string>('EMAIL_DELIVERY_TOKEN');
-    const body = {
-      subject: subject,
-      text: text,
-    };
-    const headers = {
-      Authorization: `Bearer ${token}`,
-    };
-    await firstValueFrom(
-      this.httpService.post<EmailDeliveryResponse>(url, body, {
-        headers: headers,
-      }),
-    );
+    try {
+      const url = this.configService.getOrThrow<string>('EMAIL_DELIVERY_URL');
+      const token = this.configService.getOrThrow<string>(
+        'EMAIL_DELIVERY_TOKEN',
+      );
+      const body = {
+        subject: subject,
+        text: text,
+      };
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+      await firstValueFrom(
+        this.httpService.post<EmailDeliveryResponse>(url, body, {
+          headers: headers,
+        }),
+      );
+    } catch {
+      throw new EmailNotificationException();
+    }
   }
 }
