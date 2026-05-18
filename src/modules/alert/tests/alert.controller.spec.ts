@@ -2,11 +2,13 @@ import { NotFoundException } from '@nestjs/common';
 import { describe } from 'node:test';
 import { CreatedResponseDto } from 'src/common/dtos/created-response.dto';
 import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
+import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { makeAccessTokenPayload } from 'src/common/test/factories/access-token-payload.factory';
 import { makeUuidDto } from 'src/common/test/factories/uuid.dto.factory';
 import { AlertController } from '../alert.controller';
 import { AlertService } from '../alert.service';
 import { AlertResponseDto } from '../dtos/alert-response.dto';
+import { makeAlertFiltersDto } from './factories/alert-filters.dto.factory';
 import { makeAlertEntity } from './factories/alert.entity.factory';
 import { makeCreateAlertDto } from './factories/create-alert.dto.factory';
 import { makeUpdateAlertDto } from './factories/update-alert.dto.factory';
@@ -29,26 +31,27 @@ describe('AlertController', () => {
   });
 
   describe('findAll', () => {
-    it('should return a list of mapped alerts', async () => {
+    it('should return a paginated response', async () => {
       const user = makeAccessTokenPayload();
-      const alertEntities = [makeAlertEntity()];
-      alertServiceMock.findAll.mockResolvedValue(alertEntities);
-      const response = await alertController.findAll(user);
-      expect(alertServiceMock.findAll).toHaveBeenCalledWith(user.sub);
-      expect(Array.isArray(response)).toBe(true);
-      expect(response.every((item) => item instanceof AlertResponseDto)).toBe(
-        true,
-      );
+      const filters = makeAlertFiltersDto();
+      alertServiceMock.findAll.mockResolvedValue([[makeAlertEntity()], 1]);
+      const response = await alertController.findAll(user, filters);
+      expect(alertServiceMock.findAll).toHaveBeenCalledWith(user.sub, filters);
+      expect(response instanceof PaginatedResponseDto).toBe(true);
+      expect(Array.isArray(response.data)).toBe(true);
+      expect(
+        response.data.every((item) => item instanceof AlertResponseDto),
+      ).toBe(true);
     });
 
     it('should return an empty array if no alerts found', async () => {
       const user = makeAccessTokenPayload();
-      const alertEntities = [];
-      alertServiceMock.findAll.mockResolvedValue(alertEntities);
-      const response = await alertController.findAll(user);
-      expect(alertServiceMock.findAll).toHaveBeenCalledWith(user.sub);
-      expect(Array.isArray(response)).toBe(true);
-      expect(response).toEqual([]);
+      const filters = makeAlertFiltersDto();
+      alertServiceMock.findAll.mockResolvedValue([[], 0]);
+      const response = await alertController.findAll(user, filters);
+      expect(alertServiceMock.findAll).toHaveBeenCalledWith(user.sub, filters);
+      expect(Array.isArray(response.data)).toBe(true);
+      expect(response.data).toEqual([]);
     });
   });
 
