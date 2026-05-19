@@ -48,13 +48,13 @@ export class AlertService {
     await this.alertRepository.update(alertEntity.id, dto);
   }
 
+  public async updateStatus(id: string, status: AlertStatus): Promise<void> {
+    await this.alertRepository.update(id, { status: status });
+  }
+
   public async delete(sub: string, id: string): Promise<void> {
     const alertEntity = await this.getById(sub, id);
     await this.alertRepository.delete(alertEntity.id);
-  }
-
-  public async updateStatus(id: string, status: AlertStatus): Promise<void> {
-    await this.alertRepository.update(id, { status: status });
   }
 
   private async findWithFilters(

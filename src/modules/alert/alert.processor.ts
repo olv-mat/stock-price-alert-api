@@ -5,6 +5,7 @@ import { EmailService } from 'src/common/modules/email/email.service';
 import { StockNotFoundException } from 'src/common/modules/stock/exceptions/stock-not-found.exception';
 import { StockService } from 'src/common/modules/stock/stock.service';
 import { AlertService } from './alert.service';
+import { AlertEntity } from './entities/alert.entity';
 import { AlertStatus } from './enum/alert-status.enum';
 import { AlertNotFoundException } from './exceptions/alert-not-found.exception';
 import { AlertJob } from './types/alert-job.type';
@@ -22,37 +23,44 @@ export class AlertProcessor extends WorkerHost {
     super();
   }
 
-  public async process(job: Job<AlertJob>): Promise<any> {
-    this.logger.debug('Starting alert processing...');
-    const { owner, reference } = job.data;
-    const { id, ticker, targetPrice } = await this.alertService.findOne(
-      owner,
-      reference,
-    );
-
+  public async process(job: Job<AlertJob>): Promise<void> {
+    let alertEntity: AlertEntity | null = null;
     try {
-      this.logger.debug(`Fetching price for ${ticker}...`);
-      const price = await this.stockService.getCurrentPrice(ticker);
-      const hit = this.assertTargetHit(price, targetPrice);
-      if (hit) {
-        this.logger.debug('Sending notification...');
-        await this.emailService.send(
-          'Stock Alert Triggered',
-          `${ticker} has reached your configured target price of ${targetPrice}`,
-        );
-        await this.alertService.updateStatus(id, AlertStatus.COMPLETED);
-        await this.remove(job);
-        this.logger.debug(`All done, alert finished`);
+      alertEntity = await this.getAlertByJob(job);
+      const { id, ticker, targetPrice } = alertEntity;
+      this.logger.log(`Process for alert ${id} started`);
+      const currentPrice = await this.stockService.getCurrentPrice(ticker);
+
+      if (currentPrice === undefined) {
+        this.logger.warn(`Unable to retrieve the price for ${ticker}`);
+        return;
       }
+
+      this.logger.log(
+        `Current price for ${ticker} is ${currentPrice}, target price is ${targetPrice}`,
+      );
+
+      if (currentPrice > targetPrice) {
+        this.logger.warn('Price is still above target');
+        return;
+      }
+
+      this.logger.log('Target price hit');
+      await this.sendNotification(ticker, targetPrice);
+      this.logger.log('Notification sent successfully');
+      await this.alertService.updateStatus(id, AlertStatus.COMPLETED);
+      await this.removeJob(job);
+      this.logger.log(`Alert ${id} completed successfully`);
     } catch (error) {
       if (
         error instanceof AlertNotFoundException ||
         error instanceof StockNotFoundException
       ) {
-        await this.remove(job);
+        await this.removeJob(job);
       }
 
-      if (error instanceof StockNotFoundException) {
+      if (error instanceof StockNotFoundException && alertEntity) {
+        const { id } = alertEntity;
         await this.alertService.updateStatus(id, AlertStatus.FAILED);
       }
 
@@ -62,24 +70,22 @@ export class AlertProcessor extends WorkerHost {
     }
   }
 
-  private assertTargetHit(
-    price: number | undefined,
-    targetPrice: number,
-  ): boolean {
-    if (!price) {
-      this.logger.warn('Unable to retrieve the price at the moment');
-      return false;
-    }
-    this.logger.debug(`Price now is ${price}, target is ${targetPrice}`);
-    if (price > targetPrice) {
-      this.logger.warn(`Price is still above target`);
-      return false;
-    }
-    this.logger.log(`Target hit`);
-    return true;
+  private async getAlertByJob(job: Job<AlertJob>): Promise<AlertEntity> {
+    const { owner, reference } = job.data;
+    return this.alertService.findOne(owner, reference);
   }
 
-  private async remove(job: Job<AlertJob>): Promise<void> {
+  private async sendNotification(
+    ticker: string,
+    targetPrice: number,
+  ): Promise<void> {
+    await this.emailService.send(
+      'Stock Alert Triggered',
+      `${ticker} has reached your configured target price of ${targetPrice}`,
+    );
+  }
+
+  private async removeJob(job: Job<AlertJob>): Promise<void> {
     const key = job.repeatJobKey;
     if (key) await this.queue.removeRepeatableByKey(key);
   }
