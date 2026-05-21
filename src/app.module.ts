@@ -9,6 +9,7 @@ import { AlertEntity } from './modules/alert/entities/alert.entity';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserEntity } from './modules/user/entities/user.entity';
 import { UserModule } from './modules/user/user.module';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { UserModule } from './modules/user/user.module';
     AlertModule,
     UserModule,
     AuthModule,
+    MonitoringModule,
   ],
   controllers: [],
   providers: [],
