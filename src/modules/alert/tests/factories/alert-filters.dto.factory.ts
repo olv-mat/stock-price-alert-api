@@ -1,5 +1,5 @@
 import { AlertFiltersDto } from '../../dtos/alert-filters.dto';
-import { AlertStatus } from '../../enum/alert-status.enum';
+import { AlertStatus } from '../../enums/alert-status.enum';
 
 export const makeAlertFiltersDto = (
   override?: Partial<AlertFiltersDto>,

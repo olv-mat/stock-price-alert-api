@@ -6,7 +6,7 @@ import { StockNotFoundException } from 'src/common/modules/stock/exceptions/stoc
 import { StockService } from 'src/common/modules/stock/stock.service';
 import { AlertService } from './alert.service';
 import { AlertEntity } from './entities/alert.entity';
-import { AlertStatus } from './enum/alert-status.enum';
+import { AlertStatus } from './enums/alert-status.enum';
 import { AlertNotFoundException } from './exceptions/alert-not-found.exception';
 import { AlertJob } from './types/alert-job.type';
 

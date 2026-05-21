@@ -1,4 +1,4 @@
-import { AlertStatus } from 'src/modules/alert/enum/alert-status.enum';
+import { AlertStatus } from 'src/modules/alert/enums/alert-status.enum';
 import { AlertEntity } from '../entities/alert.entity';
 
 type AlertResponseProperties = {

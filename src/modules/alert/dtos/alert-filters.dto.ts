@@ -1,6 +1,6 @@
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { AlertStatus } from '../enum/alert-status.enum';
+import { AlertStatus } from '../enums/alert-status.enum';
 
 export class AlertFiltersDto extends PaginationDto {
   @IsOptional()

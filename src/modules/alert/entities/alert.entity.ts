@@ -1,5 +1,5 @@
 import { AbstractEntity } from 'src/common/entities/abstract.entity';
-import { AlertStatus } from 'src/modules/alert/enum/alert-status.enum';
+import { AlertStatus } from 'src/modules/alert/enums/alert-status.enum';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 

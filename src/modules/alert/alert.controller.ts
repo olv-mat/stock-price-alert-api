@@ -29,7 +29,7 @@ import { AlertFiltersDto } from './dtos/alert-filters.dto';
 import { AlertResponseDto } from './dtos/alert-response.dto';
 import { CreateAlertDto } from './dtos/create-alert.dto';
 import { UpdateAlertDto } from './dtos/update-alert.dto';
-import { AlertStatus } from './enum/alert-status.enum';
+import { AlertStatus } from './enums/alert-status.enum';
 
 @Controller('alerts')
 @UseGuards(JwtGuard)

@@ -7,7 +7,7 @@ import { AlertFiltersDto } from './dtos/alert-filters.dto';
 import { CreateAlertDto } from './dtos/create-alert.dto';
 import { UpdateAlertDto } from './dtos/update-alert.dto';
 import { AlertEntity } from './entities/alert.entity';
-import { AlertStatus } from './enum/alert-status.enum';
+import { AlertStatus } from './enums/alert-status.enum';
 import { AlertNotFoundException } from './exceptions/alert-not-found.exception';
 import { AlertJob } from './types/alert-job.type';
 

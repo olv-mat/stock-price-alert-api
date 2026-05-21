@@ -1,4 +1,4 @@
-import { AlertStatus } from 'src/modules/alert/enum/alert-status.enum';
+import { AlertStatus } from 'src/modules/alert/enums/alert-status.enum';
 import { makeUserEntity } from 'src/modules/user/tests/factories/user.entity.factory';
 import { AlertEntity } from '../../entities/alert.entity';
 
