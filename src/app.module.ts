@@ -7,9 +7,9 @@ import { CryptographyModule } from './common/modules/cryptography/cryptography.m
 import { AlertModule } from './modules/alert/alert.module';
 import { AlertEntity } from './modules/alert/entities/alert.entity';
 import { AuthModule } from './modules/auth/auth.module';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { UserEntity } from './modules/user/entities/user.entity';
 import { UserModule } from './modules/user/user.module';
-import { MonitoringModule } from './modules/monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -21,11 +21,11 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
         host: configService.getOrThrow<string>('DATABASE_HOST'),
         port: configService.getOrThrow<number>('DATABASE_PORT'),
         username: configService.getOrThrow<string>('DATABASE_USERNAME'),
-        password: configService.getOrThrow<string>('DATABAE_PASSWORD'),
+        password: configService.getOrThrow<string>('DATABASE_PASSWORD'),
         database: configService.getOrThrow<string>('DATABASE_NAME'),
         entities: [AlertEntity, UserEntity],
         autoLoadEntities: false,
-        synchronize: true,
+        synchronize: false,
       }),
     }),
     BullModule.forRootAsync({
