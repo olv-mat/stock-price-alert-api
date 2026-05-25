@@ -52,7 +52,7 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should authenticate a user and return an access token', async () => {
+    it('should authenticate an user and return an access token', async () => {
       const {
         authService,
         userServiceMock,
@@ -90,7 +90,7 @@ describe('AuthService', () => {
       });
     });
 
-    it('should throw a unauthorized exception when user not found', async () => {
+    it('should throw an unauthorized exception when user not found', async () => {
       const {
         authService,
         userServiceMock,
@@ -113,7 +113,7 @@ describe('AuthService', () => {
       expect(spies.sign).not.toHaveBeenCalled();
     });
 
-    it('should throw a unauthorized exception when password is incorrect', async () => {
+    it('should throw an unauthorized exception when password is incorrect', async () => {
       const {
         authService,
         userServiceMock,
@@ -144,7 +144,7 @@ describe('AuthService', () => {
   });
 
   describe('register', () => {
-    it('should register a user and return an access token', async () => {
+    it('should register an user and return an access token', async () => {
       const { authService, userServiceMock, credentialServiceMock } = context;
       const dto = makeCreateUserDto();
       const userEntity = makeUserEntity();

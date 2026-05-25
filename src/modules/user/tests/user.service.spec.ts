@@ -50,7 +50,7 @@ describe('UserService', () => {
   });
 
   describe('find', () => {
-    it('should return a user', async () => {
+    it('should return an user', async () => {
       const { userService, userRepositoryMock } = context;
       const { id } = makeUuidDto();
       const userEntity = makeUserEntity();
@@ -121,7 +121,7 @@ describe('UserService', () => {
   });
 
   describe('update', () => {
-    it('should update a user', async () => {
+    it('should update an user', async () => {
       const { userService, userRepositoryMock, cryptographyServiceMock } =
         context;
       const { id } = makeUuidDto();
@@ -204,7 +204,7 @@ describe('UserService', () => {
   });
 
   describe('delete', () => {
-    it('should delete a user', async () => {
+    it('should delete an user', async () => {
       const { userService, userRepositoryMock } = context;
       const { id } = makeUuidDto();
       const userEntity = makeUserEntity();

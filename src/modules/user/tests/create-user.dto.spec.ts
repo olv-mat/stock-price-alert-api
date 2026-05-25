@@ -29,7 +29,7 @@ describe('CreateUserDto', () => {
   });
 
   describe('email', () => {
-    it('should fail if is not a email', async () => {
+    it('should fail if is not an email', async () => {
       const dto = makeCreateUserDto({ email: 'john.doe' });
       const errors = await validate(dto);
       expect(errors.length).toBe(1);

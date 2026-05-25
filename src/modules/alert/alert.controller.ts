@@ -15,6 +15,7 @@ import { DefaultResponseDto } from 'src/common/dtos/default-response.dto';
 import { PaginatedResponseDto } from 'src/common/dtos/paginated-response.dto';
 import { UuidDto } from 'src/common/dtos/uuid.dto';
 import { AccessTokenPayload } from 'src/common/modules/credential/contracts/access-token-payload';
+import { AtLeastOneFieldPipe } from 'src/common/pipes/at-least-one-field.pipe';
 import {
   SwaggerBearerAuth,
   SwaggerCustomResponse,
@@ -139,7 +140,7 @@ export class AlertController {
   public async update(
     @FromRequest('user') user: AccessTokenPayload,
     @Param() { id }: UuidDto,
-    @Body() dto: UpdateAlertDto,
+    @Body(new AtLeastOneFieldPipe()) dto: UpdateAlertDto,
   ): Promise<DefaultResponseDto> {
     await this.alertService.update(user.sub, id, dto);
     return DefaultResponseDto.create('Alert updated successfully');
