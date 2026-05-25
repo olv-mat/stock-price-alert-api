@@ -94,7 +94,7 @@ export class AlertService {
       },
       {
         repeat: {
-          every: 10000,
+          every: 300000,
         },
       },
     );
