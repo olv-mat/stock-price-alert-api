@@ -86,17 +86,19 @@ export class AlertService {
   }
 
   private async addToQueue(sub: string, id: string): Promise<void> {
-    await this.queue.add(
-      'job',
-      {
-        owner: sub,
-        reference: id,
+    const job = {
+      owner: sub,
+      reference: id,
+    };
+
+    const options = {
+      jobId: `${sub}:${id}`,
+      repeat: {
+        every: 60000,
+        immediately: true,
       },
-      {
-        repeat: {
-          every: 300000,
-        },
-      },
-    );
+    };
+
+    await this.queue.add('alert', job, options);
   }
 }

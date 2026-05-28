@@ -10,7 +10,9 @@ import { AlertStatus } from './enums/alert-status.enum';
 import { AlertNotFoundException } from './exceptions/alert-not-found.exception';
 import { AlertJob } from './types/alert-job.type';
 
-@Processor('alerts')
+@Processor('alerts', {
+  concurrency: Number(process.env.CONCURRENCY ?? 1),
+})
 export class AlertProcessor extends WorkerHost {
   private readonly logger = new Logger(AlertProcessor.name);
 
@@ -28,17 +30,16 @@ export class AlertProcessor extends WorkerHost {
     try {
       alertEntity = await this.getAlertByJob(job);
       const { id, ticker, targetPrice } = alertEntity;
-      this.logger.log(`Process for alert ${id} started`);
+      this.logger.log(`Processing started for ${ticker}`);
       const currentPrice = await this.stockService.getCurrentPrice(ticker);
 
       if (currentPrice === undefined) {
-        this.logger.warn(`Unable to retrieve the price for ${ticker}`);
+        this.logger.warn(`Unable to retrieve the price`);
         return;
       }
 
-      this.logger.log(
-        `Current price for ${ticker} is ${currentPrice}, target price is ${targetPrice}`,
-      );
+      this.logger.log(`Current price is ${currentPrice}`);
+      this.logger.log(`Target price is ${targetPrice}`);
 
       if (currentPrice > targetPrice) {
         this.logger.warn('Price is still above target');
@@ -50,7 +51,6 @@ export class AlertProcessor extends WorkerHost {
       this.logger.log('Notification sent successfully');
       await this.alertService.updateStatus(id, AlertStatus.COMPLETED);
       await this.removeJob(job);
-      this.logger.log(`Alert ${id} completed successfully`);
     } catch (error) {
       if (
         error instanceof AlertNotFoundException ||
@@ -80,7 +80,7 @@ export class AlertProcessor extends WorkerHost {
     targetPrice: number,
   ): Promise<void> {
     await this.emailService.send(
-      'Stock Alert Triggered',
+      'Stock Alert',
       `${ticker} has reached your configured target price of ${targetPrice}`,
     );
   }
