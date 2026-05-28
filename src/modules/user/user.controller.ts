@@ -18,7 +18,7 @@ import {
   SwaggerNotFound,
   SwaggerOperation,
   SwaggerUnauthorized,
-} from 'src/common/swagger/decorators.swagger';
+} from 'src/common/settings/swagger/swagger.decorators';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserResponseDto } from './dtos/user-response.dto';

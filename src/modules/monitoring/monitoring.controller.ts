@@ -2,7 +2,7 @@ import { Controller, Get, Header } from '@nestjs/common';
 import {
   SwaggerInternalServerError,
   SwaggerOperation,
-} from 'src/common/swagger/decorators.swagger';
+} from 'src/common/settings/swagger/swagger.decorators';
 import { MonitoringService } from './monitoring.service';
 
 @Controller('monitoring')

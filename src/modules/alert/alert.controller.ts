@@ -23,7 +23,7 @@ import {
   SwaggerNotFound,
   SwaggerOperation,
   SwaggerUnauthorized,
-} from 'src/common/swagger/decorators.swagger';
+} from 'src/common/settings/swagger/swagger.decorators';
 import { JwtGuard } from '../auth/guards/jwt.guard';
 import { AlertService } from './alert.service';
 import { AlertFiltersDto } from './dtos/alert-filters.dto';

@@ -3,11 +3,13 @@ import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { Environments } from './common/enums/environments.enum';
-import { setupSwagger } from './common/swagger/setup.swagger';
+import { setupBullBoard } from './common/settings/bull/bull-board.setup';
+import { setupSwagger } from './common/settings/swagger/swagger.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   setupSwagger(app);
+  setupBullBoard(app);
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
